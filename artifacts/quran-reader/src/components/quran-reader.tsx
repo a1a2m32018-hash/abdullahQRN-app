@@ -12,8 +12,8 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode, type TouchEvent } from 'react';
-import { getInitialReaderPage, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem } from '@/hooks/use-quran-page';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type ReactNode, type TouchEvent } from 'react';
+import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
 
 type Surah = { number: number; name: string; page: number; type: string; ayahs: number };
 const surahs: Surah[] = [
@@ -67,10 +67,40 @@ function SkeletonPage() {
   return <div className="space-y-5 px-3 py-14" aria-label="جاري تحميل الصفحة" data-testid="status-loading"><div className="mx-auto h-7 w-36 animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="mx-auto h-px w-3/4 bg-[hsl(var(--border))]" />{[80, 95, 72, 88, 64, 91, 76].map((width, index) => <div key={index} className="flex justify-center"><div style={{ width: `${width}%` }} className="h-7 animate-pulse rounded bg-[hsl(var(--muted))]" /></div>)}</div>;
 }
 
-function PageContent({ page, isBookmarked, onBookmark }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void }) {
+function AyahText({ ayah, startsSurah, onSelect }: { ayah: QuranAyah; startsSurah: boolean; onSelect: (ayah: QuranAyah) => void }) {
+  const longPressTimer = useRef<number | null>(null);
+  const longPressTriggered = useRef(false);
+
+  const clearLongPress = () => {
+    if (longPressTimer.current !== null) window.clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+  };
+  const handlePointerDown = () => {
+    longPressTriggered.current = false;
+    clearLongPress();
+    longPressTimer.current = window.setTimeout(() => {
+      longPressTriggered.current = true;
+      onSelect(ayah);
+    }, 520);
+  };
+  const handlePointerUp = () => {
+    clearLongPress();
+    if (!longPressTriggered.current) onSelect(ayah);
+  };
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLSpanElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelect(ayah);
+    }
+  };
+
+  return <span role="button" tabIndex={0} aria-label={`الآية ${toArabicNumber(ayah.numberInSurah)}، اضغط لعرض التفسير`} data-testid={`button-ayah-${ayah.number}`} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={clearLongPress} onPointerLeave={clearLongPress} onKeyDown={handleKeyDown} className={`ayah-text ${startsSurah ? 'surah-break' : ''}`}>{startsSurah && <span className="surah-title-frame surah-title-frame-inline" aria-label={`بداية سورة ${ayah.surah.name}`}><span className="surah-title-rule" /><span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span><span className="surah-title-rule" /></span>}{ayah.text}<span className="ayah-marker mx-1 translate-y-[-1px] align-middle text-[.62em] text-[hsl(var(--primary))]">{toArabicNumber(ayah.numberInSurah)}</span>{' '}</span>;
+}
+
+function PageContent({ page, isBookmarked, onBookmark, onAyahSelect }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
-  return <div className="page-in px-4 pb-8 pt-6 sm:px-8 sm:pb-10 sm:pt-8 lg:px-12" dir="rtl"><div className="mb-5 flex items-center justify-between gap-4"><div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]"><span className="h-px w-8 bg-[hsl(var(--accent)/.6)]" /><span className="text-[10px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span></div><button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>{isBookmarked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}{isBookmarked ? 'محفوظ' : 'حفظ الموضع'}</button></div>{firstSurah && <div className="surah-title-frame mb-5"><div className="surah-title-rule" /><h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1><div className="surah-title-rule" /></div>}<div className="quran-text font-serif text-[1.52rem] leading-[2.12] text-[hsl(var(--foreground))] sm:text-[1.88rem] sm:leading-[2.24]">{page.ayahs.map((ayah, index) => <span key={ayah.number} data-testid={`text-ayah-${ayah.number}`} className={surahBreaks.includes(index) && index !== 0 ? 'surah-break' : ''}>{surahBreaks.includes(index) && index !== 0 && <span className="surah-title-frame surah-title-frame-inline" aria-label={`بداية سورة ${ayah.surah.name}`}><span className="surah-title-rule" /><span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span><span className="surah-title-rule" /></span>}{ayah.text}<span className="mx-1 inline-flex h-7 w-7 translate-y-[-1px] items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] align-middle text-[.62em] text-[hsl(var(--primary))]">{toArabicNumber(ayah.numberInSurah)}</span>{' '}</span>)}</div></div>;
+  return <div className="page-in px-4 pb-8 pt-6 sm:px-8 sm:pb-10 sm:pt-8 lg:px-12" dir="rtl"><div className="mb-5 flex items-center justify-between gap-4"><div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]"><span className="h-px w-8 bg-[hsl(var(--accent)/.6)]" /><span className="text-[10px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span></div><button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>{isBookmarked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}{isBookmarked ? 'محفوظ' : 'حفظ الموضع'}</button></div>{firstSurah && <div className="surah-title-frame mb-5"><div className="surah-title-rule" /><h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1><div className="surah-title-rule" /></div>}<div className="quran-text font-serif text-[1.52rem] leading-[2.12] text-[hsl(var(--foreground))] sm:text-[1.88rem] sm:leading-[2.24]">{page.ayahs.map((ayah, index) => <AyahText key={ayah.number} ayah={ayah} startsSurah={surahBreaks.includes(index) && index !== 0} onSelect={onAyahSelect} />)}</div></div>;
 }
 
 function EmptyPage() {
@@ -79,6 +109,25 @@ function EmptyPage() {
 
 function ErrorPage({ message, retry }: { message: string; retry: () => void }) {
   return <div className="flex min-h-[410px] flex-col items-center justify-center px-6 text-center" data-testid="status-error"><CircleAlert size={28} strokeWidth={1.3} className="mb-4 text-[hsl(var(--destructive))]" /><p className="max-w-[250px] text-sm leading-7">{message}</p><button data-testid="button-retry-page" onClick={retry} className="mt-5 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-[10px] text-[hsl(var(--primary-foreground))] transition-transform hover:-translate-y-0.5">إعادة المحاولة</button></div>;
+}
+
+function TafsirDialog({ ayah, onClose }: { ayah: QuranAyah; onClose: () => void }) {
+  const { tafsir, isLoading, error, retry } = useAyahTafsir(ayah, true);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
+  return <motion.div className="fixed inset-0 z-50 flex items-end justify-center bg-[hsl(var(--foreground)/.3)] p-3 backdrop-blur-sm sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+    <motion.div role="dialog" aria-modal="true" aria-labelledby="tafsir-title" initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: .98 }} transition={{ type: 'spring', damping: 26, stiffness: 260 }} onClick={(event) => event.stopPropagation()} className="max-h-[82dvh] w-full max-w-xl overflow-y-auto rounded-[1.25rem] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 text-right shadow-[0_20px_60px_hsl(var(--foreground)/.2)] sm:p-7" dir="rtl">
+      <div className="mb-5 flex items-start justify-between gap-4 border-b border-[hsl(var(--border))] pb-4"><div><p className="mb-1 text-[10px] tracking-[.18em] text-[hsl(var(--accent))]">التفسير الميسر</p><h2 id="tafsir-title" className="font-serif text-2xl text-[hsl(var(--primary))]">تفسير الآية</h2><p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">سورة {ayah.surah.name} · الآية {toArabicNumber(ayah.numberInSurah)}</p></div><button data-testid="button-close-tafsir" aria-label="إغلاق التفسير" onClick={onClose} className="rounded-full p-2 text-[hsl(var(--muted-foreground))] transition-colors hover:bg-[hsl(var(--muted))]"><X size={19} /></button></div>
+      {isLoading && !tafsir ? <div className="space-y-3 py-5" data-testid="status-tafsir-loading"><div className="h-4 w-11/12 animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="h-4 w-full animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="h-4 w-4/5 animate-pulse rounded bg-[hsl(var(--muted))]" /></div> : error && !tafsir ? <div className="py-6 text-center" data-testid="status-tafsir-error"><CircleAlert size={25} className="mx-auto mb-3 text-[hsl(var(--destructive))]" /><p className="text-xs leading-6 text-[hsl(var(--muted-foreground))]">{error}</p><button data-testid="button-retry-tafsir" onClick={() => void retry()} className="mt-4 rounded-full bg-[hsl(var(--primary))] px-4 py-2 text-[10px] text-[hsl(var(--primary-foreground))]">إعادة المحاولة</button></div> : <div className="rounded-xl border border-[hsl(var(--accent)/.25)] bg-[hsl(var(--background)/.45)] p-4 sm:p-5"><p className="font-serif text-lg leading-[2.05] text-[hsl(var(--foreground))]" data-testid="text-tafsir">{tafsir?.text}</p><p className="mt-5 border-t border-[hsl(var(--border))] pt-3 text-[9px] text-[hsl(var(--muted-foreground))]">المصدر: التفسير الميسر · Al Quran Cloud API</p></div>}
+    </motion.div>
+  </motion.div>;
 }
 
 function PageArrow({ side, disabled, onClick }: { side: 'next' | 'previous'; disabled: boolean; onClick: () => void }) {
@@ -93,6 +142,7 @@ export default function QuranReader() {
   const [drawer, setDrawer] = useState<'bookmarks' | 'surahs' | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [direction, setDirection] = useState(1);
+  const [selectedAyah, setSelectedAyah] = useState<QuranAyah | null>(null);
   const touchStart = useRef<number | null>(null);
   const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
   const currentSurah = pageSurah(pageNumber);
@@ -130,7 +180,7 @@ export default function QuranReader() {
     touchStart.current = null;
   };
   const onPageTap = (event: MouseEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest('button, input')) return;
+    if ((event.target as HTMLElement).closest('button, input, [role="button"]')) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - bounds.left;
     if (x < bounds.width * 0.16) goTo(pageNumber + 1);
@@ -160,7 +210,7 @@ export default function QuranReader() {
       <div className="mb-5 flex items-end justify-between px-2 sm:px-4"><div><p className="mb-1 text-[10px] text-[hsl(var(--muted-foreground))]">أنت تقرأ الآن</p><h2 data-testid="text-current-surah" className="font-serif text-2xl text-[hsl(var(--primary))]">{currentSurah.name}</h2></div><form className="text-left" onSubmit={(event) => { event.preventDefault(); goTo(Number(pageInput)); }}><label htmlFor="page-jump" className="block text-[10px] text-[hsl(var(--muted-foreground))]">انتقل إلى صفحة</label><div className="mt-1 flex items-center gap-1"><input id="page-jump" data-testid="input-page-jump" value={toArabicNumber(pageInput)} onChange={(event) => setPageInput(fromArabicNumber(event.target.value).replace(/\D/g, '').slice(0, 3))} inputMode="numeric" aria-label="رقم الصفحة" className="w-14 border-b border-[hsl(var(--accent)/.65)] bg-transparent py-1 text-left font-serif text-xl text-[hsl(var(--primary))] outline-none" /><span className="text-xs text-[hsl(var(--muted-foreground))]">/ ٦٠٤</span></div></form></div>
        <div className="mushaf-frame mx-auto max-w-5xl overflow-hidden rounded-[1.15rem]" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onClick={onPageTap}>
         <div className="ornament-line mx-12 mt-5 sm:mx-20 sm:mt-7" />
-        <AnimatePresence mode="wait" initial={false}><motion.div key={pageNumber} initial={{ opacity: 0, x: direction * 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: direction * -12 }} transition={{ duration: .24 }}>{isLoading && !page ? <SkeletonPage /> : error && !page ? <ErrorPage message={error} retry={retry} /> : page?.ayahs.length ? <PageContent page={page} isBookmarked={isBookmarked(pageNumber)} onBookmark={toggleBookmark} /> : <EmptyPage />}</motion.div></AnimatePresence>
+         <AnimatePresence mode="wait" initial={false}><motion.div key={pageNumber} initial={{ opacity: 0, x: direction * 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: direction * -12 }} transition={{ duration: .24 }}>{isLoading && !page ? <SkeletonPage /> : error && !page ? <ErrorPage message={error} retry={retry} /> : page?.ayahs.length ? <PageContent page={page} isBookmarked={isBookmarked(pageNumber)} onBookmark={toggleBookmark} onAyahSelect={setSelectedAyah} /> : <EmptyPage />}</motion.div></AnimatePresence>
         <div className="ornament-line mx-12 mb-5 sm:mx-20 sm:mb-7" />
       </div>
       {isOffline && <div className="mx-auto mt-3 flex max-w-3xl items-center justify-center gap-2 text-[9px] text-[hsl(var(--muted-foreground))]" data-testid="status-cached-page"><WifiOff size={12} /> تُعرض نسخة محفوظة من هذه الصفحة</div>}
@@ -173,5 +223,6 @@ export default function QuranReader() {
     <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2.5 backdrop-blur-md"><div className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-[9px] text-[hsl(var(--muted-foreground))]"><Compass size={13} className="text-[hsl(var(--accent))]" /><span>قراءة متأنية، آية بعد آية</span><span className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]" /><span>القرآن الكريم · رواية حفص</span></div></footer>
     {drawer === 'bookmarks' && <BookmarkDrawer bookmarks={bookmarks} onClose={() => setDrawer(null)} onGo={(page) => { goTo(page); setDrawer(null); }} onRemove={removeBookmark} />}
     {drawer === 'surahs' && <SurahDrawer currentPage={pageNumber} onClose={() => setDrawer(null)} onGo={(page) => { goTo(page); setDrawer(null); }} />}
+     <AnimatePresence>{selectedAyah && <TafsirDialog ayah={selectedAyah} onClose={() => setSelectedAyah(null)} />}</AnimatePresence>
   </main>;
 }

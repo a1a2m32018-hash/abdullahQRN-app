@@ -89,6 +89,69 @@ export function useQuranPage(pageNumber: number) {
   return { page, isLoading, error, isOffline, retry: load };
 }
 
+export type AyahTafsir = {
+  number: number;
+  text: string;
+  surah: QuranAyah['surah'];
+};
+
+type TafsirApiResponse = { code: number; status: string; data: AyahTafsir };
+type TafsirCacheState = Record<string, AyahTafsir>;
+const TAFSIR_CACHE_KEY = 'quran-reader-tafsir-cache-v1';
+
+function readTafsirCache(): TafsirCacheState {
+  try {
+    return JSON.parse(localStorage.getItem(TAFSIR_CACHE_KEY) ?? '{}') as TafsirCacheState;
+  } catch {
+    return {};
+  }
+}
+
+export function useAyahTafsir(ayah: QuranAyah | null, enabled: boolean) {
+  const [tafsir, setTafsir] = useState<AyahTafsir | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!ayah) return;
+    const key = `${ayah.surah.number}:${ayah.numberInSurah}`;
+    const cached = readTafsirCache()[key];
+    setIsLoading(true);
+    setError(null);
+    setTafsir(cached ?? null);
+    try {
+      const response = await fetch(
+        `https://api.alquran.cloud/v1/ayah/${key}/ar.muyassar`,
+        { headers: { Accept: 'application/json' } },
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const result = (await response.json()) as TafsirApiResponse;
+      if (result.code !== 200 || !result.data?.text) throw new Error('Invalid tafsir response');
+      setTafsir(result.data);
+      try {
+        localStorage.setItem(TAFSIR_CACHE_KEY, JSON.stringify({ ...readTafsirCache(), [key]: result.data }));
+      } catch {
+        // The explanation remains available in memory if storage is unavailable.
+      }
+    } catch {
+      if (!cached) setError('تعذر تحميل التفسير الآن. تحقق من الاتصال ثم حاول مرة أخرى.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [ayah]);
+
+  useEffect(() => {
+    if (enabled && ayah) void load();
+    else {
+      setTafsir(null);
+      setError(null);
+      setIsLoading(false);
+    }
+  }, [ayah, enabled, load]);
+
+  return { tafsir, isLoading, error, retry: load };
+}
+
 export type Bookmark = {
   id: string;
   page: number;

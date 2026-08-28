@@ -204,6 +204,58 @@
   display: inline;
 }
 
+.ayah-text {
+  cursor: pointer;
+  border-radius: .35rem;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ayah-text:hover,
+.ayah-text:focus-visible {
+  outline: none;
+  background: hsl(var(--accent) / .08);
+  box-shadow: 0 0 0 .25rem hsl(var(--accent) / .08);
+}
+
+.ayah-marker {
+  position: relative;
+  display: inline-flex;
+  width: 1.9em;
+  height: 1.9em;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--accent) / .78);
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(var(--card)) 47%, hsl(var(--accent) / .1) 48%, transparent 70%);
+  box-shadow: 0 0 0 2px hsl(var(--card)), 0 0 0 3px hsl(var(--accent) / .28);
+  font-family: var(--font-serif);
+  line-height: 1;
+  isolation: isolate;
+}
+
+.ayah-marker::before {
+  content: '';
+  position: absolute;
+  inset: .19em;
+  border: 1px dotted hsl(var(--accent) / .62);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ayah-marker::after {
+  content: '✦';
+  position: absolute;
+  top: -.48em;
+  left: 50%;
+  color: hsl(var(--accent));
+  font-family: sans-serif;
+  font-size: .42em;
+  line-height: 1;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
 .arabic-number {
   font-family: var(--font-serif);
   direction: rtl;
