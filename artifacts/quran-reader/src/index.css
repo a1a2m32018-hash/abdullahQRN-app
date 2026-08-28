@@ -169,6 +169,41 @@
   background: linear-gradient(90deg, transparent, hsl(var(--accent) / .65), transparent);
 }
 
+.surah-title-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  width: min(100%, 30rem);
+  margin-inline: auto;
+  padding: .48rem .9rem;
+  border: 1px solid hsl(var(--accent) / .62);
+  border-radius: .7rem;
+  background: linear-gradient(90deg, transparent, hsl(var(--accent) / .08), transparent);
+  box-shadow: inset 0 0 0 3px hsl(var(--card) / .75);
+}
+
+.surah-title-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--accent) / .62));
+}
+
+.surah-title-rule:last-child {
+  transform: rotate(180deg);
+}
+
+.surah-title-frame-inline {
+  width: 100%;
+  margin-block: 1.35rem .9rem;
+  padding-block: .3rem;
+  font-size: .88em;
+}
+
+.surah-break {
+  display: inline;
+}
+
 .arabic-number {
   font-family: var(--font-serif);
   direction: rtl;
