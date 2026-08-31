@@ -19,7 +19,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type ReactNode, type TouchEvent } from 'react';
 import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
 
 type Surah = { number: number; name: string; page: number; type: string; ayahs: number };
@@ -237,38 +237,236 @@ export default function QuranReader() {
     setSelectedAyah(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
   const toggleBookmark = () => {
     const existing = bookmarks.find((bookmark) => bookmark.page === pageNumber);
     if (existing) removeBookmark(existing.id);
     else addBookmark(pageNumber);
   };
+
   return <main className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))]" dir="rtl">
     <header className="sticky top-0 z-30 border-b border-[hsl(var(--border)/.72)] bg-[hsl(var(--background)/.9)] backdrop-blur-md">
-       <div className="reader-header mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-7 sm:py-4">
-         <div className="flex min-w-0 items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] text-[hsl(var(--accent))]"><BookOpen size={18} strokeWidth={1.5} /></div><div><p className="text-[11px] font-semibold tracking-[.12em] text-[hsl(var(--primary))]">مصحف QRN</p><p className="hidden text-[9px] text-[hsl(var(--muted-foreground))] sm:block">رفيقك الهادئ كل يوم</p></div></div>
-         <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2"><button data-testid="toggle-tafsir-mode" role="switch" aria-checked={tafsirMode} aria-label="وضع التفسير" onClick={() => setTafsirMode((current) => !current)} className={`mode-toggle ${tafsirMode ? 'is-on' : ''}`}><span className="mode-toggle-dot" /><span>وضع التفسير</span></button><IconButton label={isDark ? 'الوضع الفاتح' : 'الوضع الليلي'} testId="button-toggle-dark-mode" onClick={() => setIsDark((current) => !current)} active={isDark}>{isDark ? <Sun size={18} /> : <Moon size={18} />}</IconButton><IconButton label="فهرس السور" testId="button-open-surahs" onClick={() => setDrawer('surahs')}><Menu size={18} /></IconButton><IconButton label="مواضعي المحفوظة" testId="button-open-bookmarks" onClick={() => setDrawer('bookmarks')} active={bookmarks.length > 0}><Bookmark size={18} /></IconButton></div>
-       </div>
+      <div className="reader-header mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-7 sm:py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] text-[hsl(var(--accent))]">
+            <BookOpen size={18} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold tracking-[.12em] text-[hsl(var(--primary))]">مصحف QRN</p>
+            <p className="hidden text-[9px] text-[hsl(var(--muted-foreground))] sm:block">رفيقك الهادئ كل يوم</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+          <button
+            data-testid="toggle-tafsir-mode"
+            role="switch"
+            aria-checked={tafsirMode}
+            aria-label="وضع التفسير"
+            onClick={() => setTafsirMode((current) => !current)}
+            className={`mode-toggle ${tafsirMode ? 'is-on' : ''}`}
+          >
+            <span className="mode-toggle-dot" />
+            <span>وضع التفسير</span>
+          </button>
+
+          <IconButton
+            label={isDark ? 'الوضع الفاتح' : 'الوضع الليلي'}
+            testId="button-toggle-dark-mode"
+            onClick={() => setIsDark((current) => !current)}
+            active={isDark}
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </IconButton>
+
+          <IconButton
+            label="فهرس السور"
+            testId="button-open-surahs"
+            onClick={() => setDrawer('surahs')}
+          >
+            <Menu size={18} />
+          </IconButton>
+
+          <IconButton
+            label="مواضعي المحفوظة"
+            testId="button-open-bookmarks"
+            onClick={() => setDrawer('bookmarks')}
+            active={bookmarks.length > 0}
+          >
+            <Bookmark size={18} />
+          </IconButton>
+        </div>
+      </div>
     </header>
-    {!isOnline && <div className="mx-auto flex max-w-5xl items-center justify-center gap-2 border-b border-[hsl(var(--accent)/.24)] bg-[hsl(var(--accent)/.1)] px-4 py-2 text-[10px] text-[hsl(var(--primary))]" data-testid="status-offline"><WifiOff size={13} /> أنت غير متصل. ستظهر الصفحات المحفوظة على هذا الجهاز.</div>}
-     <PageArrow side="next" disabled={pageNumber === 604} onClick={() => goTo(pageNumber + 1)} /><PageArrow side="previous" disabled={pageNumber === 1} onClick={() => goTo(pageNumber - 1)} />
-       <section className="reader-section mx-auto max-w-7xl px-3 pb-32 pt-5 sm:px-7 sm:pt-8">
-      <div className="mb-5 flex items-end justify-between px-2 sm:px-4"><div><p className="mb-1 text-[10px] text-[hsl(var(--muted-foreground))]">أنت تقرأ الآن</p><h2 data-testid="text-current-surah" className="font-serif text-2xl text-[hsl(var(--primary))]">{currentSurah.name}</h2></div><form className="text-left" onSubmit={(event) => { event.preventDefault(); goTo(Number(pageInput)); }}><label htmlFor="page-jump" className="block text-[10px] text-[hsl(var(--muted-foreground))]">انتقل إلى صفحة</label><div className="mt-1 flex items-center gap-1"><input id="page-jump" data-testid="input-page-jump" value={toArabicNumber(pageInput)} onChange={(event) => setPageInput(fromArabicNumber(event.target.value).replace(/\D/g, '').slice(0, 3))} inputMode="numeric" aria-label="رقم الصفحة" className="w-14 border-b border-[hsl(var(--accent)/.65)] bg-transparent py-1 text-left font-serif text-xl text-[hsl(var(--primary))] outline-none" /><span className="text-xs text-[hsl(var(--muted-foreground))]">/ ٦٠٤</span></div></form></div>
-        <div className="mushaf-frame mx-auto max-w-5xl overflow-hidden rounded-[1.15rem]">
+
+    {!isOnline && (
+      <div
+        className="mx-auto flex max-w-5xl items-center justify-center gap-2 border-b border-[hsl(var(--accent)/.24)] bg-[hsl(var(--accent)/.1)] px-4 py-2 text-[10px] text-[hsl(var(--primary))]"
+        data-testid="status-offline"
+      >
+        <WifiOff size={13} />
+        أنت غير متصل. ستظهر الصفحات المحفوظة على هذا الجهاز.
+      </div>
+    )}
+
+    <PageArrow
+      side="next"
+      disabled={pageNumber === 604}
+      onClick={() => goTo(pageNumber + 1)}
+    />
+
+    <PageArrow
+      side="previous"
+      disabled={pageNumber === 1}
+      onClick={() => goTo(pageNumber - 1)}
+    />
+
+    <section className="reader-section mx-auto max-w-7xl px-3 pb-32 pt-5 sm:px-7 sm:pt-8">
+      <div className="mb-5 flex items-end justify-between px-2 sm:px-4">
+        <div>
+          <p className="mb-1 text-[10px] text-[hsl(var(--muted-foreground))]">أنت تقرأ الآن</p>
+          <h2 data-testid="text-current-surah" className="font-serif text-2xl text-[hsl(var(--primary))]">
+            {currentSurah.name}
+          </h2>
+        </div>
+
+        <form
+          className="text-left"
+          onSubmit={(event) => {
+            event.preventDefault();
+            goTo(Number(pageInput));
+          }}
+        >
+          <label htmlFor="page-jump" className="block text-[10px] text-[hsl(var(--muted-foreground))]">
+            انتقل إلى صفحة
+          </label>
+
+          <div className="mt-1 flex items-center gap-1">
+            <input
+              id="page-jump"
+              data-testid="input-page-jump"
+              value={toArabicNumber(pageInput)}
+              onChange={(event) => setPageInput(fromArabicNumber(event.target.value).replace(/\D/g, '').slice(0, 3))}
+              inputMode="numeric"
+              aria-label="رقم الصفحة"
+              className="w-14 border-b border-[hsl(var(--accent)/.65)] bg-transparent py-1 text-left font-serif text-xl text-[hsl(var(--primary))] outline-none"
+            />
+            <span className="text-xs text-[hsl(var(--muted-foreground))]">/ ٦٠٤</span>
+          </div>
+        </form>
+      </div>
+
+      <div className="mushaf-frame mx-auto max-w-5xl overflow-hidden rounded-[1.15rem]">
         <div className="ornament-line mx-12 mt-5 sm:mx-20 sm:mt-7" />
-          <AnimatePresence mode="wait" initial={false}><motion.div key={pageNumber} initial={{ opacity: 0, x: direction * 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: direction * -12 }} transition={{ duration: .24 }}>{isLoading && !page ? <SkeletonPage /> : error && !page ? <ErrorPage message={error} retry={retry} /> : page?.ayahs.length ? <PageContent page={page} isBookmarked={isBookmarked(pageNumber)} onBookmark={toggleBookmark} onAyahSelect={setSelectedAyah} tafsirMode={tafsirMode} /> : <EmptyPage />}</motion.div></AnimatePresence>
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pageNumber}
+            initial={{ opacity: 0, x: direction * 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: direction * -12 }}
+            transition={{ duration: .24 }}
+          >
+            {isLoading && !page ? (
+              <SkeletonPage />
+            ) : error && !page ? (
+              <ErrorPage message={error} retry={retry} />
+            ) : page?.ayahs.length ? (
+              <PageContent
+                page={page}
+                isBookmarked={isBookmarked(pageNumber)}
+                onBookmark={toggleBookmark}
+                onAyahSelect={setSelectedAyah}
+                tafsirMode={tafsirMode}
+              />
+            ) : (
+              <EmptyPage />
+            )}
+          </motion.div>
+        </AnimatePresence>
+
         <div className="ornament-line mx-12 mb-5 sm:mx-20 sm:mb-7" />
       </div>
-      {isOffline && <div className="mx-auto mt-3 flex max-w-3xl items-center justify-center gap-2 text-[9px] text-[hsl(var(--muted-foreground))]" data-testid="status-cached-page"><WifiOff size={12} /> تُعرض نسخة محفوظة من هذه الصفحة</div>}
-       <div className="mx-auto mt-5 flex max-w-5xl items-center justify-between gap-3">
-        <button data-testid="button-next-page" onClick={() => goTo(pageNumber + 1)} disabled={pageNumber === 604} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"><ChevronRight size={17} /> الصفحة التالية</button>
-        <div className="hidden shrink-0 items-center gap-1 text-[9px] text-[hsl(var(--muted-foreground))] sm:flex"><span>اسحب للتنقل</span><span className="text-[hsl(var(--accent))]">← →</span></div>
-        <button data-testid="button-previous-page" onClick={() => goTo(pageNumber - 1)} disabled={pageNumber === 1} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40">الصفحة السابقة <ChevronLeft size={17} /></button>
-       </div>
-       <DhikrPanel />
+
+      {isOffline && (
+        <div
+          className="mx-auto mt-3 flex max-w-3xl items-center justify-center gap-2 text-[9px] text-[hsl(var(--muted-foreground))]"
+          data-testid="status-cached-page"
+        >
+          <WifiOff size={12} />
+          تُعرض نسخة محفوظة من هذه الصفحة
+        </div>
+      )}
+
+      <div className="mx-auto mt-5 flex max-w-5xl items-center justify-between gap-3">
+        <button
+          data-testid="button-next-page"
+          onClick={() => goTo(pageNumber + 1)}
+          disabled={pageNumber === 604}
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <ChevronRight size={17} />
+          الصفحة التالية
+        </button>
+
+        <div className="hidden shrink-0 items-center gap-1 text-[9px] text-[hsl(var(--muted-foreground))] sm:flex">
+          <span>استخدم الأزرار للتنقل</span>
+          <span className="text-[hsl(var(--accent))]">← →</span>
+        </div>
+
+        <button
+          data-testid="button-previous-page"
+          onClick={() => goTo(pageNumber - 1)}
+          disabled={pageNumber === 1}
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          الصفحة السابقة
+          <ChevronLeft size={17} />
+        </button>
+      </div>
+
+      <DhikrPanel />
     </section>
-    <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2.5 backdrop-blur-md"><div className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-[9px] text-[hsl(var(--muted-foreground))]"><Compass size={13} className="text-[hsl(var(--accent))]" /><span>قراءة متأنية، آية بعد آية</span><span className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]" /><span>القرآن الكريم · رواية حفص</span></div></footer>
-    {drawer === 'bookmarks' && <BookmarkDrawer bookmarks={bookmarks} onClose={() => setDrawer(null)} onGo={(page) => { goTo(page); setDrawer(null); }} onRemove={removeBookmark} />}
-    {drawer === 'surahs' && <SurahDrawer currentPage={pageNumber} onClose={() => setDrawer(null)} onGo={(page) => { goTo(page); setDrawer(null); }} />}
-     <AnimatePresence>{selectedAyah && <TafsirDialog ayah={selectedAyah} onClose={() => setSelectedAyah(null)} />}</AnimatePresence>
+
+    <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2.5 backdrop-blur-md">
+      <div className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-[9px] text-[hsl(var(--muted-foreground))]">
+        <Compass size={13} className="text-[hsl(var(--accent))]" />
+        <span>قراءة متأنية، آية بعد آية</span>
+        <span className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]" />
+        <span>القرآن الكريم · رواية حفص</span>
+      </div>
+    </footer>
+
+    {drawer === 'bookmarks' && (
+      <BookmarkDrawer
+        bookmarks={bookmarks}
+        onClose={() => setDrawer(null)}
+        onGo={(page) => {
+          goTo(page);
+          setDrawer(null);
+        }}
+        onRemove={removeBookmark}
+      />
+    )}
+
+    {drawer === 'surahs' && (
+      <SurahDrawer
+        currentPage={pageNumber}
+        onClose={() => setDrawer(null)}
+        onGo={(page) => {
+          goTo(page);
+          setDrawer(null);
+        }}
+      />
+    )}
+
+    <AnimatePresence>
+      {selectedAyah && (
+        <TafsirDialog
+          ayah={selectedAyah}
+          onClose={() => setSelectedAyah(null)}
+        />
+      )}
+    </AnimatePresence>
   </main>;
 }
