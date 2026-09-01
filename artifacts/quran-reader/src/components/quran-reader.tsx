@@ -19,7 +19,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, type ReactNode, type TouchEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
 
 type Surah = { number: number; name: string; page: number; type: string; ayahs: number };
@@ -64,7 +64,7 @@ function readDhikr(): DhikrCounter[] {
 
 function IconButton({ label, onClick, children, active = false, testId }: { label: string; onClick: () => void; children: ReactNode; active?: boolean; testId: string }) {
   return (
-    <button aria-label={label} data-testid={testId} onClick={onClick} className={`group relative flex h-11 w-11 items-center justify-center rounded-full border transition-all duration-200 ${active ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.72)] text-[hsl(var(--muted-foreground))] hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'}`}>
+    <button aria-label={label} data-testid={testId} onClick={onClick} className={`group relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border transition-all duration-200 ${active ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.72)] text-[hsl(var(--muted-foreground))] hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'}`}>
       {children}
       <span className="pointer-events-none absolute -bottom-8 left-1/2 z-20 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-[hsl(var(--foreground))] px-2 py-1 text-[9px] text-[hsl(var(--background))] group-hover:block">{label}</span>
     </button>
@@ -102,43 +102,41 @@ function SurahDrawer({ onClose, onGo, currentPage }: { onClose: () => void; onGo
 }
 
 function SkeletonPage() {
-  return <div className="space-y-5 px-3 py-14" aria-label="جاري تحميل الصفحة" data-testid="status-loading"><div className="mx-auto h-7 w-36 animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="mx-auto h-px w-3/4 bg-[hsl(var(--border))]" />{[80, 95, 72, 88, 64, 91, 76].map((width, index) => <div key={index} className="flex justify-center"><div style={{ width: `${width}%` }} className="h-7 animate-pulse rounded bg-[hsl(var(--muted))]" /></div>)}</div>;
+  return <div className="space-y-6 px-4 py-12" aria-label="جاري تحميل الصفحة" data-testid="status-loading"><div className="mx-auto h-7 w-36 animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="mx-auto h-px w-3/4 bg-[hsl(var(--border))]" />{[80, 95, 72, 88, 64, 91, 76].map((width, index) => <div key={index} className="flex justify-center"><div style={{ width: `${width}%` }} className="h-7 animate-pulse rounded bg-[hsl(var(--muted))]" /></div>)}</div>;
 }
 
 function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah; startsSurah: boolean; onSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
-  const longPressTimer = useRef<number | null>(null);
-  const longPressTriggered = useRef(false);
-
-  const clearLongPress = () => {
-    if (longPressTimer.current !== null) window.clearTimeout(longPressTimer.current);
-    longPressTimer.current = null;
-  };
-  const handlePointerDown = () => {
-    longPressTriggered.current = false;
-    clearLongPress();
-    longPressTimer.current = window.setTimeout(() => {
-      longPressTriggered.current = true;
-      onSelect(ayah);
-    }, 520);
-  };
-  const handlePointerUp = () => {
-    clearLongPress();
-    if (!longPressTriggered.current) onSelect(ayah);
-  };
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLSpanElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
+  const handleClick = () => {
+    if (tafsirMode) {
       onSelect(ayah);
     }
   };
 
-  return <span role={tafsirMode ? 'button' : undefined} tabIndex={tafsirMode ? 0 : undefined} aria-label={tafsirMode ? `الآية ${toArabicNumber(ayah.numberInSurah)}، اضغط لعرض التفسير` : undefined} data-testid={`button-ayah-${ayah.number}`} onPointerDown={tafsirMode ? handlePointerDown : undefined} onPointerUp={tafsirMode ? handlePointerUp : undefined} onPointerCancel={tafsirMode ? clearLongPress : undefined} onPointerLeave={tafsirMode ? clearLongPress : undefined} onKeyDown={tafsirMode ? handleKeyDown : undefined} className={`${tafsirMode ? 'ayah-text ' : ''}${startsSurah ? 'surah-break' : ''}`}>{startsSurah && <span className="surah-title-frame surah-title-frame-inline" aria-label={`بداية سورة ${ayah.surah.name}`}><span className="surah-title-rule" /><span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span><span className="surah-title-rule" /></span>}{ayah.text}<span className="ayah-marker mx-1 translate-y-[-1px] align-middle text-[.62em] text-[hsl(var(--primary))]">{toArabicNumber(ayah.numberInSurah)}</span>{' '}</span>;
+  return (
+    <span 
+      onClick={handleClick}
+      className={`${tafsirMode ? 'cursor-pointer hover:bg-[hsl(var(--accent)/.2)] hover:rounded transition-colors duration-150' : ''} ${startsSurah ? 'surah-break' : ''}`}
+      title={tafsirMode ? 'اضغط لعرض التفسير' : undefined}
+    >
+      {startsSurah && (
+        <span className="surah-title-frame surah-title-frame-inline my-6" aria-label={`بداية سورة ${ayah.surah.name}`}>
+          <span className="surah-title-rule" />
+          <span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span>
+          <span className="surah-title-rule" />
+        </span>
+      )}
+      {ayah.text}
+      <span className="ayah-marker mx-1.5 inline-block text-[.62em] text-[hsl(var(--primary))]">
+        {toArabicNumber(ayah.numberInSurah)}
+      </span>{' '}
+    </span>
+  );
 }
 
 function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
-  return <div className="page-in" dir="rtl"><div className="mb-5 flex items-center justify-between gap-4"><div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]"><span className="h-px w-8 bg-[hsl(var(--accent)/.6)]" /><span className="text-[10px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span></div><button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>{isBookmarked ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}{isBookmarked ? 'محفوظ' : 'حفظ الموضع'}</button></div>{firstSurah && <div className="surah-title-frame mb-5"><div className="surah-title-rule" /><h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1><div className="surah-title-rule" /></div>}<div className="quran-text quran-script">{page.ayahs.map((ayah, index) => <AyahText key={ayah.number} ayah={ayah} startsSurah={surahBreaks.includes(index) && index !== 0} onSelect={onAyahSelect} tafsirMode={tafsirMode} />)}</div></div>;
+  return <div className="page-in px-2 py-4 sm:px-6" dir="rtl"><div className="mb-6 flex items-center justify-between gap-4"><div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]"><span className="h-px w-6 bg-[hsl(var(--accent)/.6)]" /><span className="text-[11px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span></div><button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>{isBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}{isBookmarked ? 'محفوظ' : 'حفظ الموضع'}</button></div>{firstSurah && <div className="surah-title-frame mb-6"><div className="surah-title-rule" /><h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1><div className="surah-title-rule" /></div>}<div className="quran-text quran-script text-justify font-serif text-xl leading-[2.8] tracking-wide text-[hsl(var(--foreground))] sm:text-2xl sm:leading-[3.0]">{page.ayahs.map((ayah, index) => <AyahText key={ayah.number} ayah={ayah} startsSurah={surahBreaks.includes(index) && index !== 0} onSelect={onAyahSelect} tafsirMode={tafsirMode} />)}</div></div>;
 }
 
 function EmptyPage() {
@@ -166,9 +164,9 @@ function DhikrPanel() {
   };
   const reset = () => setCounters(defaultDhikr);
 
-  return <section className="adhkar-panel mx-auto mt-8 max-w-5xl rounded-[1.35rem] border border-[hsl(var(--border))] p-4 sm:mt-10 sm:p-6" dir="rtl" data-testid="section-adhkar">
+  return <section className="adhkar-panel mx-auto mt-8 max-w-xl rounded-[1.35rem] border border-[hsl(var(--border))] p-4 sm:mt-10 sm:p-6" dir="rtl" data-testid="section-adhkar">
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[hsl(var(--border)/.75)] pb-4"><div><div className="mb-2 flex items-center gap-2 text-[hsl(var(--accent))]"><Sparkles size={15} /><span className="text-[10px] font-semibold tracking-[.18em]">مساحة الذكر</span></div><h2 className="font-serif text-2xl text-[hsl(var(--primary))]">أذكاري اليوم</h2><p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">عدادات تحفظ تقدمك تلقائياً على هذا الجهاز</p></div><div className="flex items-center gap-3"><span className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]"><CircleGauge size={13} className="text-[hsl(var(--accent))]" /> المجموع <strong className="font-serif text-lg text-[hsl(var(--primary))]">{toArabicNumber(total)}</strong></span><button data-testid="button-reset-dhikr" onClick={reset} className="flex items-center gap-1.5 rounded-full border border-[hsl(var(--border))] px-3 py-2 text-[10px] text-[hsl(var(--muted-foreground))] transition-colors hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]"><RotateCcw size={13} /> تصفير</button></div></div>
-    <div className="grid gap-3 sm:grid-cols-3">{counters.map((counter) => <button key={counter.id} data-testid={`button-dhikr-${counter.id}`} onClick={() => increment(counter.id)} className="dhikr-card group text-right"><span className="flex items-center justify-between gap-3"><span><span className="block text-[10px] text-[hsl(var(--muted-foreground))]">{counter.label}</span><span className="mt-1 block font-serif text-lg text-[hsl(var(--foreground))]">{counter.phrase}</span></span><span className="dhikr-count"><span className="font-serif text-xl">{toArabicNumber(counter.count)}</span><Plus size={14} /></span></span><span className="mt-4 flex items-center justify-between text-[9px] text-[hsl(var(--muted-foreground))]"><span>اضغط للزيادة</span><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] transition-transform group-hover:scale-150" /></span></button>)}</div>
+    <div className="grid gap-3 sm:grid-cols-2">{counters.map((counter) => <button key={counter.id} data-testid={`button-dhikr-${counter.id}`} onClick={() => increment(counter.id)} className="dhikr-card group text-right"><span className="flex items-center justify-between gap-3"><span><span className="block text-[10px] text-[hsl(var(--muted-foreground))]">{counter.label}</span><span className="mt-1 block font-serif text-lg text-[hsl(var(--foreground))]">{counter.phrase}</span></span><span className="dhikr-count"><span className="font-serif text-xl">{toArabicNumber(counter.count)}</span><Plus size={14} /></span></span><span className="mt-4 flex items-center justify-between text-[9px] text-[hsl(var(--muted-foreground))]"><span>اضغط للزيادة</span><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] transition-transform group-hover:scale-150" /></span></button>)}</div>
   </section>;
 }
 
@@ -191,19 +189,19 @@ function TafsirDialog({ ayah, onClose }: { ayah: QuranAyah; onClose: () => void 
   </motion.div>;
 }
 
-function PageArrow({ side, disabled, onClick }: { side: 'next' | 'previous'; disabled: boolean; onClick: () => void }) {
-  const isNext = side === 'next';
+function PageArrow({ side, disabled, onClick }: { side: 'right' | 'left'; disabled: boolean; onClick: () => void }) {
+  const isRight = side === 'right';
   return (
     <button
       data-testid={`button-fixed-${side}-page`}
-      aria-label={isNext ? 'الصفحة التالية' : 'الصفحة السابقة'}
-      title={isNext ? 'الصفحة التالية' : 'الصفحة السابقة'}
+      aria-label={isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}
+      title={isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}
       onClick={onClick}
       disabled={disabled}
-      className={`hidden md:flex fixed ${isNext ? 'left-4 lg:left-8' : 'right-4 lg:right-8'} top-1/2 z-30 h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.9)] text-[hsl(var(--primary))] shadow-[0_5px_18px_hsl(var(--foreground)/.1)] backdrop-blur-sm transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] disabled:cursor-not-allowed disabled:opacity-30`}
+      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.92)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.12)] backdrop-blur-sm transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-20 sm:h-12 sm:w-12`}
     >
-      <span className="sr-only">{isNext ? 'الصفحة التالية' : 'الصفحة السابقة'}</span>
-      {isNext ? <ChevronLeft size={23} strokeWidth={1.7} /> : <ChevronRight size={23} strokeWidth={1.7} />}
+      <span className="sr-only">{isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}</span>
+      {isRight ? <ChevronRight size={22} strokeWidth={2} /> : <ChevronLeft size={22} strokeWidth={2} />}
     </button>
   );
 }
@@ -261,10 +259,10 @@ export default function QuranReader() {
 
   return <main className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))]" dir="rtl">
     <header className="sticky top-0 z-30 border-b border-[hsl(var(--border)/.72)] bg-[hsl(var(--background)/.9)] backdrop-blur-md">
-      <div className="reader-header mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-7 sm:py-4">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] text-[hsl(var(--accent))]">
-            <BookOpen size={18} strokeWidth={1.5} />
+      <div className="reader-header mx-auto flex max-w-xl flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] text-[hsl(var(--accent))]">
+            <BookOpen size={17} strokeWidth={1.5} />
           </div>
           <div>
             <p className="text-[11px] font-semibold tracking-[.12em] text-[hsl(var(--primary))]">مصحف QRN</p>
@@ -273,16 +271,18 @@ export default function QuranReader() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+          {/* زر وضع التفسير واضح ونشط */}
           <button
             data-testid="toggle-tafsir-mode"
-            role="switch"
-            aria-checked={tafsirMode}
-            aria-label="وضع التفسير"
             onClick={() => setTafsirMode((current) => !current)}
-            className={`mode-toggle ${tafsirMode ? 'is-on' : ''}`}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold transition-all border ${
+              tafsirMode
+                ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent))] text-white shadow-md'
+                : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'
+            }`}
           >
-            <span className="mode-toggle-dot" />
-            <span>وضع التفسير</span>
+            <span className={`h-2 w-2 rounded-full ${tafsirMode ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
+            <span>وضع التفسير: {tafsirMode ? 'مفعل' : 'معطل'}</span>
           </button>
 
           <IconButton
@@ -291,7 +291,7 @@ export default function QuranReader() {
             onClick={() => setIsDark((current) => !current)}
             active={isDark}
           >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+            {isDark ? <Sun size={17} /> : <Moon size={17} />}
           </IconButton>
 
           <IconButton
@@ -299,7 +299,7 @@ export default function QuranReader() {
             testId="button-open-surahs"
             onClick={() => setDrawer('surahs')}
           >
-            <Menu size={18} />
+            <Menu size={17} />
           </IconButton>
 
           <IconButton
@@ -308,7 +308,7 @@ export default function QuranReader() {
             onClick={() => setDrawer('bookmarks')}
             active={bookmarks.length > 0}
           >
-            <Bookmark size={18} />
+            <Bookmark size={17} />
           </IconButton>
         </div>
       </div>
@@ -316,7 +316,7 @@ export default function QuranReader() {
 
     {!isOnline && (
       <div
-        className="mx-auto flex max-w-5xl items-center justify-center gap-2 border-b border-[hsl(var(--accent)/.24)] bg-[hsl(var(--accent)/.1)] px-4 py-2 text-[10px] text-[hsl(var(--primary))]"
+        className="mx-auto flex max-w-xl items-center justify-center gap-2 border-b border-[hsl(var(--accent)/.24)] bg-[hsl(var(--accent)/.1)] px-4 py-2 text-[10px] text-[hsl(var(--primary))]"
         data-testid="status-offline"
       >
         <WifiOff size={13} />
@@ -324,23 +324,25 @@ export default function QuranReader() {
       </div>
     )}
 
+    {/* السهم الأيمن ينقل للصفحة التالية */}
     <PageArrow
-      side="next"
+      side="right"
       disabled={pageNumber === 604}
       onClick={() => goTo(pageNumber + 1)}
     />
 
+    {/* السهم الأيسر ينقل للصفحة السابقة */}
     <PageArrow
-      side="previous"
+      side="left"
       disabled={pageNumber === 1}
       onClick={() => goTo(pageNumber - 1)}
     />
 
-    <section className="reader-section mx-auto max-w-7xl px-3 pb-32 pt-5 sm:px-7 sm:pt-8">
-      <div className="mb-5 flex items-end justify-between px-2 sm:px-4">
+    <section className="reader-section mx-auto max-w-xl px-2 pb-28 pt-4 sm:px-6 sm:pt-6">
+      <div className="mb-4 flex items-end justify-between px-2">
         <div>
-          <p className="mb-1 text-[10px] text-[hsl(var(--muted-foreground))]">أنت تقرأ الآن</p>
-          <h2 data-testid="text-current-surah" className="font-serif text-2xl text-[hsl(var(--primary))]">
+          <p className="mb-0.5 text-[10px] text-[hsl(var(--muted-foreground))]">أنت تقرأ الآن</p>
+          <h2 data-testid="text-current-surah" className="font-serif text-xl sm:text-2xl text-[hsl(var(--primary))]">
             {currentSurah.name}
           </h2>
         </div>
@@ -356,7 +358,7 @@ export default function QuranReader() {
             انتقل إلى صفحة
           </label>
 
-          <div className="mt-1 flex items-center gap-1">
+          <div className="mt-0.5 flex items-center gap-1">
             <input
               id="page-jump"
               data-testid="input-page-jump"
@@ -364,15 +366,22 @@ export default function QuranReader() {
               onChange={(event) => setPageInput(fromArabicNumber(event.target.value).replace(/\D/g, '').slice(0, 3))}
               inputMode="numeric"
               aria-label="رقم الصفحة"
-              className="w-14 border-b border-[hsl(var(--accent)/.65)] bg-transparent py-1 text-left font-serif text-xl text-[hsl(var(--primary))] outline-none"
+              className="w-12 border-b border-[hsl(var(--accent)/.65)] bg-transparent py-0.5 text-left font-serif text-lg text-[hsl(var(--primary))] outline-none"
             />
             <span className="text-xs text-[hsl(var(--muted-foreground))]">/ ٦٠٤</span>
           </div>
         </form>
       </div>
 
-      <div className="mushaf-frame mx-auto max-w-5xl overflow-hidden rounded-[1.15rem]">
-        <div className="ornament-line mx-12 mt-5 sm:mx-20 sm:mt-7" />
+      {/* إشعار تذكيري لوضع التفسير عند تفعيله */}
+      {tafsirMode && (
+        <div className="mb-3 rounded-lg border border-[hsl(var(--accent)/.4)] bg-[hsl(var(--accent)/.1)] p-2 text-center text-[11px] text-[hsl(var(--primary))]">
+          💡 وضع التفسير مفعل: اضغط على أي آية لمشاهدة تفسيرها الميسر.
+        </div>
+      )}
+
+      <div className="mushaf-frame mx-auto min-h-[620px] overflow-hidden rounded-[1.25rem] border border-[hsl(var(--border))] bg-[hsl(var(--card)/.5)] p-2 shadow-sm sm:p-4">
+        <div className="ornament-line mx-8 mt-3 sm:mx-14 sm:mt-5" />
 
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -400,12 +409,12 @@ export default function QuranReader() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="ornament-line mx-12 mb-5 sm:mx-20 sm:mb-7" />
+        <div className="ornament-line mx-8 mb-3 sm:mx-14 sm:mb-5" />
       </div>
 
       {isOffline && (
         <div
-          className="mx-auto mt-3 flex max-w-3xl items-center justify-center gap-2 text-[9px] text-[hsl(var(--muted-foreground))]"
+          className="mx-auto mt-3 flex max-w-xl items-center justify-center gap-2 text-[9px] text-[hsl(var(--muted-foreground))]"
           data-testid="status-cached-page"
         >
           <WifiOff size={12} />
@@ -413,39 +422,34 @@ export default function QuranReader() {
         </div>
       )}
 
-      <div className="mx-auto mt-5 flex max-w-5xl items-center justify-between gap-3">
-        <button
-          data-testid="button-next-page"
-          onClick={() => goTo(pageNumber + 1)}
-          disabled={pageNumber === 604}
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <ChevronRight size={17} />
-          الصفحة التالية
-        </button>
-
-        <div className="hidden shrink-0 items-center gap-1 text-[9px] text-[hsl(var(--muted-foreground))] sm:flex">
-          <span>استخدم الأزرار للتنقل</span>
-          <span className="text-[hsl(var(--accent))]">← →</span>
-        </div>
-
+      <div className="mx-auto mt-5 flex max-w-xl items-center justify-between gap-3">
         <button
           data-testid="button-previous-page"
           onClick={() => goTo(pageNumber - 1)}
           disabled={pageNumber === 1}
-          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
         >
+          <ChevronRight size={16} />
           الصفحة السابقة
-          <ChevronLeft size={17} />
+        </button>
+
+        <button
+          data-testid="button-next-page"
+          onClick={() => goTo(pageNumber + 1)}
+          disabled={pageNumber === 604}
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[10px] text-[hsl(var(--muted-foreground))] transition-all hover:-translate-y-0.5 hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))] disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          الصفحة التالية
+          <ChevronLeft size={16} />
         </button>
       </div>
 
       <DhikrPanel />
     </section>
 
-    <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2.5 backdrop-blur-md">
-      <div className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-[9px] text-[hsl(var(--muted-foreground))]">
-        <Compass size={13} className="text-[hsl(var(--accent))]" />
+    <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2 backdrop-blur-md">
+      <div className="mx-auto flex max-w-xl items-center justify-center gap-2.5 text-[9px] text-[hsl(var(--muted-foreground))]">
+        <Compass size={12} className="text-[hsl(var(--accent))]" />
         <span>قراءة متأنية، آية بعد آية</span>
         <span className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]" />
         <span>القرآن الكريم · رواية حفص</span>
