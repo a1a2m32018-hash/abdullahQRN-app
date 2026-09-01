@@ -147,7 +147,6 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode 
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
   
   const isSurahStartPage = firstSurah && page.ayahs[0]?.numberInSurah === 1;
-  const showFirstSurahBasmala = isSurahStartPage && firstSurah.number !== 1 && firstSurah.number !== 9;
 
   return (
     <div className="page-in px-2 py-4 sm:px-6" dir="rtl">
@@ -170,7 +169,7 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode 
         </div>
       )}
 
-      {showFirstSurahBasmala && (
+      {isSurahStartPage && firstSurah && firstSurah.number !== 1 && firstSurah.number !== 9 && (
         <div className="block font-serif text-xl text-[hsl(var(--foreground))] mb-6 text-center">
           بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
         </div>
