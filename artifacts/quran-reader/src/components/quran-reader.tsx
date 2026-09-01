@@ -107,15 +107,11 @@ function SkeletonPage() {
 
 function cleanAyahText(text: string, isFirstAyahOfSurah: boolean): string {
   if (!isFirstAyahOfSurah) return text;
-  // إزالة شاملة لأي شكل من أشكال البسملة في بداية الآية الأولى
+  // Remove starting Basmala if API includes it inside the first ayah text
   return text
-    .replace(/^[\u0640-\u064A\sبِسْمِٱللَّهِٱلرَّحْمَٰنِٱلرَّحِيمِاللهالرحمن الرحيمبسم الله الرحمن الرحيم\u0650\u0651\u0670\u064E]+/u, '')
-    .replace(/^بِسْمِ[\s\S]*?الرَّحِيمِ\s*/u, '')
-    .replace(/^بِسْمِ\s*ٱللَّهِ\s*ٱلرَّحْمَٰنِ\s*ٱلرَّحِيمِ\s*/u, '')
-    .replace(/^بِسْمِ\s*اللهِ\s*الرَّحْمٰنِ\s*الرَّحِيمِ\s*/u, '')
-    .replace(/^بِسْمِ\s*اللَّهِ\s*الرَّحْمَٰنِ\s*الرَّحِيمِ\s*/u, '')
-    .replace(/^[بِسْمِ الله الرَّحْمٰن الرَّحِيم]+/u, '')
-    .trim();
+    .replace(/^بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*/u, '')
+    .replace(/^بِسْمِ\s+اللهِ\s+الرَّحْمٰنِ\s+الرَّحِيمِ\s*/u, '')
+    .replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ\s*/u, '');
 }
 
 function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah; startsSurah: boolean; onSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
