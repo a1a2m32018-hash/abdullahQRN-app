@@ -107,6 +107,7 @@ function SkeletonPage() {
 
 function cleanAyahText(text: string, isFirstAyahOfSurah: boolean): string {
   if (!isFirstAyahOfSurah) return text;
+  // Remove starting Basmala if API includes it inside the first ayah text
   return text
     .replace(/^بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*/u, '')
     .replace(/^بِسْمِ\s+اللهِ\s+الرَّحْمٰنِ\s+الرَّحِيمِ\s*/u, '')
@@ -216,7 +217,7 @@ function DhikrPanel() {
     try {
       localStorage.setItem(DHIKR_KEY, JSON.stringify(counters));
     } catch {
-      // Keep available in memory
+      // Keep the counters available in memory if storage is unavailable.
     }
   }, [counters]);
 
@@ -250,7 +251,7 @@ function TafsirDialog({ ayah, onClose }: { ayah: QuranAyah; onClose: () => void 
   </motion.div>;
 }
 
-function PageArrow({ side, disabled, onClick, isScrolling }: { side: 'right' | 'left'; disabled: boolean; onClick: () => void; isScrolling: boolean }) {
+function PageArrow({ side, disabled, onClick }: { side: 'right' | 'left'; disabled: boolean; onClick: () => void }) {
   const isRight = side === 'right';
   return (
     <button
@@ -259,8 +260,7 @@ function PageArrow({ side, disabled, onClick, isScrolling }: { side: 'right' | '
       title={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
       onClick={onClick}
       disabled={disabled}
-      style={{ opacity: isScrolling ? 0.15 : undefined }}
-      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.92)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.12)] backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-20 sm:h-12 sm:w-12`}
+      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.92)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.12)] backdrop-blur-sm transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-20 sm:h-12 sm:w-12`}
     >
       <span className="sr-only">{isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}</span>
       {isRight ? <ChevronRight size={22} strokeWidth={2} /> : <ChevronLeft size={22} strokeWidth={2} />}
@@ -279,27 +279,6 @@ export default function QuranReader() {
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
   const [isDark, setIsDark] = useState(() => readPreference(DARK_MODE_KEY));
   const [currentView, setCurrentView] = useState<'quran' | 'adhkar'>('quran');
-  
-  // حالة الشفافية أثناء التمرير
-  const [isScrolling, setIsScrolling] = useState(false);
-
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    const handleScroll = () => {
-      setIsScrolling(true);
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setIsScrolling(false);
-      }, 150);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, []);
-
   const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
   const currentSurah = pageSurah(pageNumber);
 
@@ -415,13 +394,11 @@ export default function QuranReader() {
           side="right"
           disabled={pageNumber === 1}
           onClick={() => goTo(pageNumber - 1)}
-          isScrolling={isScrolling}
         />
         <PageArrow
           side="left"
           disabled={pageNumber === 604}
           onClick={() => goTo(pageNumber + 1)}
-          isScrolling={isScrolling}
         />
       </>
     )}
@@ -532,7 +509,7 @@ export default function QuranReader() {
         <button
           data-testid="button-nav-adhkar"
           onClick={() => setCurrentView('adhkar')}
-          className`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
+          className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
             currentView === 'adhkar'
               ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))] shadow-sm'
               : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'
