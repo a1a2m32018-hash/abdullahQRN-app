@@ -105,6 +105,15 @@ function SkeletonPage() {
   return <div className="space-y-6 px-4 py-12" aria-label="جاري تحميل الصفحة" data-testid="status-loading"><div className="mx-auto h-7 w-36 animate-pulse rounded bg-[hsl(var(--muted))]" /><div className="mx-auto h-px w-3/4 bg-[hsl(var(--border))]" />{[80, 95, 72, 88, 64, 91, 76].map((width, index) => <div key={index} className="flex justify-center"><div style={{ width: `${width}%` }} className="h-7 animate-pulse rounded bg-[hsl(var(--muted))]" /></div>)}</div>;
 }
 
+function cleanAyahText(text: string, isFirstAyahOfSurah: boolean): string {
+  if (!isFirstAyahOfSurah) return text;
+  // Remove starting Basmala if API includes it inside the first ayah text
+  return text
+    .replace(/^بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*/u, '')
+    .replace(/^بِسْمِ\s+اللهِ\s+الرَّحْمٰنِ\s+الرَّحِيمِ\s*/u, '')
+    .replace(/^بِسْمِ\s+اللَّهِ\s+الرَّحْمَٰنِ\s+الرَّحِيمِ\s*/u, '');
+}
+
 function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah; startsSurah: boolean; onSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
   const handleClick = () => {
     if (tafsirMode) {
@@ -113,6 +122,8 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
   };
 
   const showBasmala = startsSurah && ayah.surah.number !== 1 && ayah.surah.number !== 9;
+  const isFirstOfSurah = ayah.numberInSurah === 1;
+  const cleanedText = cleanAyahText(ayah.text, isFirstOfSurah);
 
   return (
     <span 
@@ -134,7 +145,7 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
           )}
         </span>
       )}
-      {ayah.text}
+      {cleanedText}
       <span className="ayah-marker mx-1.5 inline-block text-[.62em] text-[hsl(var(--primary))]">
         {toArabicNumber(ayah.numberInSurah)}
       </span>{' '}
