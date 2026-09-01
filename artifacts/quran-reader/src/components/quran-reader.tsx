@@ -19,7 +19,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
 
 type Surah = { number: number; name: string; page: number; type: string; ayahs: number };
@@ -145,7 +145,10 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
 function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
-  const showFirstSurahBasmala = firstSurah && firstSurah.number !== 1 && firstSurah.number !== 9;
+  
+  // هل الصفحة تبدأ ببداية سورة جديدة؟ (أي أن أول آية في الصفحة هي الآية رقم 1 في سورتها)
+  const isSurahStartPage = firstSurah && page.ayahs[0]?.numberInSurah === 1;
+  const showFirstSurahBasmala = isSurahStartPage && firstSurah.number !== 1 && firstSurah.number !== 9;
 
   return (
     <div className="page-in px-2 py-4 sm:px-6" dir="rtl">
@@ -160,7 +163,8 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode 
         </button>
       </div>
 
-      {firstSurah && (
+      {/* إطار اسم السورة يظهر فقط إذا كانت الصفحة تبدأ بسورة جديدة */}
+      {isSurahStartPage && firstSurah && (
         <div className="surah-title-frame mb-6">
           <div className="surah-title-rule" />
           <h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1>
@@ -168,6 +172,7 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode 
         </div>
       )}
 
+      {/* البسملة في أعلى الصفحة تظهر فقط إذا كانت الصفحة تبدأ بسورة جديدة وليست التوبة ولا الفاتحة */}
       {showFirstSurahBasmala && (
         <div className="block font-serif text-xl text-[hsl(var(--foreground))] mb-6 text-center">
           بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
@@ -511,7 +516,7 @@ export default function QuranReader() {
 
     <footer className="fixed bottom-0 left-0 right-0 z-20 border-t border-[hsl(var(--border)/.7)] bg-[hsl(var(--background)/.93)] px-4 py-2 backdrop-blur-md">
       <div className="mx-auto flex max-w-xl items-center justify-center gap-2.5 text-[9px] text-[hsl(var(--muted-foreground))]">
-        <Compass size={12} className="text-[hsl(var(--accent))]" />
+        <Compass size=12 className="text-[hsl(var(--accent))]" />
         <span>قراءة متأنية، آية بعد آية</span>
         <span className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]" />
         <span>القرآن الكريم · رواية حفص</span>
