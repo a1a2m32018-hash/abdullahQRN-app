@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap');
+
+@font-face {
+  font-family: 'Uthmani';
+  src: url('https://quran.com/fonts/uthmani/KFGQPC-Uthman-Taha-Naskh-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
+.quran-text,
+.ayah-text {
+  font-family: 'Uthmani', 'Scheherazade New', 'Amiri', serif !important;
+  font-size: 1.85rem;
+  line-height: 2.3;
+}
+
+.font-serif {
+  font-family: 'Amiri', serif !important;
+}
