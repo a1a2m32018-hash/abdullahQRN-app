@@ -18,6 +18,7 @@ import {
   Sun,
   WifiOff,
   X,
+  ShieldMoon,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
@@ -107,7 +108,6 @@ function SkeletonPage() {
 
 function cleanAyahText(text: string, isFirstAyahOfSurah: boolean): string {
   if (!isFirstAyahOfSurah) return text;
-  // Remove starting Basmala if API includes it inside the first ayah text
   return text
     .replace(/^بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*/u, '')
     .replace(/^بِسْمِ\s+اللهِ\s+الرَّحْمٰنِ\s+الرَّحِيمِ\s*/u, '')
@@ -156,7 +156,6 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
 function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
-  
   const isSurahStartPage = firstSurah && page.ayahs[0]?.numberInSurah === 1;
 
   return (
@@ -217,7 +216,7 @@ function DhikrPanel() {
     try {
       localStorage.setItem(DHIKR_KEY, JSON.stringify(counters));
     } catch {
-      // Keep the counters available in memory if storage is unavailable.
+      // Keep available in memory
     }
   }, [counters]);
 
@@ -230,6 +229,71 @@ function DhikrPanel() {
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[hsl(var(--border)/.75)] pb-4"><div><div className="mb-2 flex items-center gap-2 text-[hsl(var(--accent))]"><Sparkles size={15} /><span className="text-[10px] font-semibold tracking-[.18em]">مساحة الذكر</span></div><h2 className="font-serif text-2xl text-[hsl(var(--primary))]">أذكاري اليوم</h2><p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">عدادات تحفظ تقدمك تلقائياً على هذا الجهاز</p></div><div className="flex items-center gap-3"><span className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]"><CircleGauge size={13} className="text-[hsl(var(--accent))]" /> المجموع <strong className="font-serif text-lg text-[hsl(var(--primary))]">{toArabicNumber(total)}</strong></span><button data-testid="button-reset-dhikr" onClick={reset} className="flex items-center gap-1.5 rounded-full border border-[hsl(var(--border))] px-3 py-2 text-[10px] text-[hsl(var(--muted-foreground))] transition-colors hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]"><RotateCcw size={13} /> تصفير</button></div></div>
     <div className="grid gap-3 sm:grid-cols-2">{counters.map((counter) => <button key={counter.id} data-testid={`button-dhikr-${counter.id}`} onClick={() => increment(counter.id)} className="dhikr-card group text-right"><span className="flex items-center justify-between gap-3"><span><span className="block text-[10px] text-[hsl(var(--muted-foreground))]">{counter.label}</span><span className="mt-1 block font-serif text-lg text-[hsl(var(--foreground))]">{counter.phrase}</span></span><span className="dhikr-count"><span className="font-serif text-xl">{toArabicNumber(counter.count)}</span><Plus size={14} /></span></span><span className="mt-4 flex items-center justify-between text-[9px] text-[hsl(var(--muted-foreground))]"><span>اضغط للزيادة</span><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] transition-transform group-hover:scale-150" /></span></button>)}</div>
   </section>;
+}
+
+// قسم أذكار النوم الجديد
+function SleepAdhkarPanel({ onGoToPage }: { onGoToPage: (page: number) => void }) {
+  return (
+    <section className="adhkar-panel mx-auto mt-2 max-w-xl rounded-[1.35rem] border border-[hsl(var(--border))] p-4 sm:p-6" dir="rtl" data-testid="section-sleep-adhkar">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[hsl(var(--border)/.75)] pb-4">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-[hsl(var(--accent))]">
+            <ShieldMoon size={15} />
+            <span className="text-[10px] font-semibold tracking-[.18em]">الحصن اليومي</span>
+          </div>
+          <h2 className="font-serif text-2xl text-[hsl(var(--primary))]">أذكار النوم</h2>
+          <p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">السنن والسور المنجية قبل النوم مباركة إن شاء الله</p>
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-serif text-lg text-[hsl(var(--primary))]">سورة الملك</h3>
+            <button onClick={() => onGoToPage(562)} className="text-xs text-[hsl(var(--accent))] hover:underline flex items-center gap-1">
+              الانتقال لصفحتها (ص ٥٦٢) <ChevronLeft size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">تُقرا كل ليلة لتنجي من عذاب القبر وهي ثلاثون آية.</p>
+        </div>
+
+        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-serif text-lg text-[hsl(var(--primary))]">آية الكرسي</h3>
+            <button onClick={() => onGoToPage(42)} className="text-xs text-[hsl(var(--accent))] hover:underline flex items-center gap-1">
+              الانتقال لها (سورة البقرة) <ChevronLeft size={14} />
+            </button>
+          </div>
+          <p className="font-serif text-base text-[hsl(var(--foreground))] my-2 leading-loose" dir="rtl">
+            اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تاخذه سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ ما فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ...
+          </p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">من قرأها ليلًا لم يزل عليه من الله حافظ ولا يقربنه شيطان حتى يصبح.</p>
+        </div>
+
+        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-serif text-lg text-[hsl(var(--primary))]">آخر آيتين من سورة البقرة</h3>
+            <button onClick={() => onGoToPage(49)} className="text-xs text-[hsl(var(--accent))] hover:underline flex items-center gap-1">
+              الانتقال لهما (ص ٤٩) <ChevronLeft size={14} />
+            </button>
+          </div>
+          <p className="font-serif text-base text-[hsl(var(--foreground))] my-2 leading-loose">
+            آمَنَ الرَّسُولُ بِمَا أُنزِلَ إِلَيْهِ مِن رَّبِّهِ وَالْمُؤْمِنُونَ ۚ كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ...
+          </p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">من قرأهما في ليلة كفتاه.</p>
+        </div>
+
+        <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-serif text-lg text-[hsl(var(--primary))]">المعوذات (الإخلاص، الفلق، الناس)</h3>
+            <button onClick={() => onGoToPage(604)} className="text-xs text-[hsl(var(--accent))] hover:underline flex items-center gap-1">
+              الانتقال لها (ص ٦٠٤) <ChevronLeft size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed">تُقرأ ثلاث مرات مع النفث في الكفين ومسح الجسد بها قبل النوم.</p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function TafsirDialog({ ayah, onClose }: { ayah: QuranAyah; onClose: () => void }) {
@@ -278,7 +342,7 @@ export default function QuranReader() {
   const [selectedAyah, setSelectedAyah] = useState<QuranAyah | null>(null);
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
   const [isDark, setIsDark] = useState(() => readPreference(DARK_MODE_KEY));
-  const [currentView, setCurrentView] = useState<'quran' | 'adhkar'>('quran');
+  const [currentView, setCurrentView] = useState<'quran' | 'adhkar' | 'sleep'>('quran');
   const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
   const currentSurah = pageSurah(pageNumber);
 
@@ -488,35 +552,51 @@ export default function QuranReader() {
             </div>
           )}
         </>
-      ) : (
+      ) : currentView === 'adhkar' ? (
         <DhikrPanel />
+      ) : (
+        <SleepAdhkarPanel onGoToPage={(page) => { setCurrentView('quran'); goTo(page); }} />
       )}
 
-      <div className="mx-auto mt-5 flex max-w-xl items-center justify-between gap-3">
+      {/* شريطة الأقسام السفلية (تمت إضافة زر أذكار النوم لتصبح ثلاثة أقسام متناسقة) */}
+      <div className="mx-auto mt-5 flex max-w-xl items-center justify-between gap-2">
         <button
           data-testid="button-nav-mushaf"
           onClick={() => setCurrentView('quran')}
-          className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
+          className={`flex h-11 flex-1 items-center justify-center gap-1 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
             currentView === 'quran'
               ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))] shadow-sm'
               : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'
           }`}
         >
-          <BookOpen size={16} />
+          <BookOpen size={15} />
           المصحف
         </button>
 
         <button
           data-testid="button-nav-adhkar"
           onClick={() => setCurrentView('adhkar')}
-          className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
+          className={`flex h-11 flex-1 items-center justify-center gap-1 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
             currentView === 'adhkar'
               ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))] shadow-sm'
               : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'
           }`}
         >
-          <Sparkles size={16} />
+          <Sparkles size={15} />
           الأذكار
+        </button>
+
+        <button
+          data-testid="button-nav-sleep"
+          onClick={() => setCurrentView('sleep')}
+          className={`flex h-11 flex-1 items-center justify-center gap-1 rounded-xl border transition-all hover:-translate-y-0.5 text-xs font-semibold ${
+            currentView === 'sleep'
+              ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.18)] text-[hsl(var(--primary))] shadow-sm'
+              : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'
+          }`}
+        >
+          <ShieldMoon size={15} />
+          أذكار النوم
         </button>
       </div>
     </section>
