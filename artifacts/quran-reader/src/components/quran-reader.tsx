@@ -112,6 +112,8 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
     }
   };
 
+  const showBasmala = startsSurah && ayah.surah.number !== 1 && ayah.surah.number !== 9;
+
   return (
     <span 
       onClick={handleClick}
@@ -119,10 +121,17 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
       title={tafsirMode ? 'اضغط لعرض التفسير' : undefined}
     >
       {startsSurah && (
-        <span className="surah-title-frame surah-title-frame-inline my-6" aria-label={`بداية سورة ${ayah.surah.name}`}>
-          <span className="surah-title-rule" />
-          <span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span>
-          <span className="surah-title-rule" />
+        <span className="block text-center w-full" aria-label={`بداية سورة ${ayah.surah.name}`}>
+          <span className="surah-title-frame surah-title-frame-inline my-6" aria-label={`عنوان سورة ${ayah.surah.name}`}>
+            <span className="surah-title-rule" />
+            <span className="font-serif text-xl text-[hsl(var(--primary))]">{ayah.surah.name}</span>
+            <span className="surah-title-rule" />
+          </span>
+          {showBasmala && (
+            <span className="block font-serif text-xl text-[hsl(var(--foreground))] my-4 text-center">
+              بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+            </span>
+          )}
         </span>
       )}
       {ayah.text}
@@ -194,13 +203,13 @@ function PageArrow({ side, disabled, onClick }: { side: 'right' | 'left'; disabl
   return (
     <button
       data-testid={`button-fixed-${side}-page`}
-      aria-label={isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}
-      title={isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}
+      aria-label={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
+      title={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
       onClick={onClick}
       disabled={disabled}
       className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.92)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.12)] backdrop-blur-sm transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-20 sm:h-12 sm:w-12`}
     >
-      <span className="sr-only">{isRight ? 'الصفحة التالية' : 'الصفحة السابقة'}</span>
+      <span className="sr-only">{isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}</span>
       {isRight ? <ChevronRight size={22} strokeWidth={2} /> : <ChevronLeft size={22} strokeWidth={2} />}
     </button>
   );
@@ -325,14 +334,14 @@ export default function QuranReader() {
 
     <PageArrow
       side="right"
-      disabled={pageNumber === 604}
-      onClick={() => goTo(pageNumber + 1)}
+      disabled={pageNumber === 1}
+      onClick={() => goTo(pageNumber - 1)}
     />
 
     <PageArrow
       side="left"
-      disabled={pageNumber === 1}
-      onClick={() => goTo(pageNumber - 1)}
+      disabled={pageNumber === 604}
+      onClick={() => goTo(pageNumber + 1)}
     />
 
     <section className="reader-section mx-auto max-w-xl px-2 pb-28 pt-4 sm:px-6 sm:pt-6">
