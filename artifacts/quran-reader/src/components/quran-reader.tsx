@@ -145,7 +145,48 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
 function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
-  return <div className="page-in px-2 py-4 sm:px-6" dir="rtl"><div className="mb-6 flex items-center justify-between gap-4"><div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]"><span className="h-px w-6 bg-[hsl(var(--accent)/.6)]" /><span className="text-[11px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span></div><button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>{isBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}{isBookmarked ? 'محفوظ' : 'حفظ الموضع'}</button></div>{firstSurah && <div className="surah-title-frame mb-6"><div className="surah-title-rule" /><h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1><div className="surah-title-rule" /></div>}<div className="quran-text quran-script text-right font-serif text-xl leading-[2.8] tracking-wide text-[hsl(var(--foreground))] sm:text-2xl sm:leading-[3.0]">{page.ayahs.map((ayah, index) => <AyahText key={ayah.number} ayah={ayah} startsSurah={surahBreaks.includes(index) && index !== 0} onSelect={onAyahSelect} tafsirMode={tafsirMode} />)}</div></div>;
+  const showFirstSurahBasmala = firstSurah && firstSurah.number !== 1 && firstSurah.number !== 9;
+
+  return (
+    <div className="page-in px-2 py-4 sm:px-6" dir="rtl">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-[hsl(var(--muted-foreground))]">
+          <span className="h-px w-6 bg-[hsl(var(--accent)/.6)]" />
+          <span className="text-[11px]">الجزء {toArabicNumber(page.ayahs[0]?.juz ?? 1)}</span>
+        </div>
+        <button data-testid="button-bookmark-current" aria-label={isBookmarked ? 'إزالة حفظ الصفحة' : 'حفظ الصفحة'} onClick={onBookmark} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] transition-colors ${isBookmarked ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))]' : 'border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))]'}`}>
+          {isBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+          {isBookmarked ? 'محفوظ' : 'حفظ الموضع'}
+        </button>
+      </div>
+
+      {firstSurah && (
+        <div className="surah-title-frame mb-6">
+          <div className="surah-title-rule" />
+          <h1 className="font-serif text-2xl text-[hsl(var(--primary))] sm:text-3xl">{firstSurah.name}</h1>
+          <div className="surah-title-rule" />
+        </div>
+      )}
+
+      {showFirstSurahBasmala && (
+        <div className="block font-serif text-xl text-[hsl(var(--foreground))] mb-6 text-center">
+          بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+        </div>
+      )}
+
+      <div className="quran-text quran-script text-right font-serif text-xl leading-[2.8] tracking-wide text-[hsl(var(--foreground))] sm:text-2xl sm:leading-[3.0]">
+        {page.ayahs.map((ayah, index) => (
+          <AyahText 
+            key={ayah.number} 
+            ayah={ayah} 
+            startsSurah={surahBreaks.includes(index) && index !== 0} 
+            onSelect={onAyahSelect} 
+            tafsirMode={tafsirMode} 
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function EmptyPage() {
