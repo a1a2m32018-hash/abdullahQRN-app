@@ -14,12 +14,14 @@ import {
   Plus,
   RotateCcw,
   Search,
-  Sparkles,
+   Sparkles,
   Sun,
+  Volume2,
+  VolumeX,
   WifiOff,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { getInitialReaderPage, useAyahTafsir, useBookmarks, useQuranPage, LAST_PAGE_KEY, type Bookmark as BookmarkItem, type QuranAyah } from '@/hooks/use-quran-page';
 
 type Surah = { number: number; name: string; page: number; type: string; ayahs: number };
@@ -27,7 +29,6 @@ const surahs: Surah[] = [
   ['الفاتحة',1,'مكية',7],['البقرة',2,'مدنية',286],['آل عمران',50,'مدنية',200],['النساء',77,'مدنية',176],['المائدة',106,'مدنية',120],['الأنعام',128,'مكية',165],['الأعراف',151,'مكية',206],['الأنفال',177,'مدنية',75],['التوبة',187,'مدنية',129],['يونس',208,'مكية',109],['هود',221,'مكية',123],['يوسف',235,'مكية',111],['الرعد',249,'مدنية',43],['إبراهيم',255,'مكية',52],['الحجر',262,'مكية',99],['النحل',267,'مكية',128],['الإسراء',282,'مكية',111],['الكهف',293,'مكية',110],['مريم',305,'مكية',98],['طه',312,'مكية',135],['الأنبيائ',322,'مكية',112],['الحج',332,'مدنية',78],['المؤمنون',342,'مكية',118],['النور',350,'مدنية',64],['الفرقان',359,'مكية',77],['الشعراء',367,'مكية',227],['النمل',377,'مكية',93],['القصص',385,'مكية',88],['العنكبوت',396,'مكية',69],['الروم',404,'مكية',60],['لقمان',411,'مكية',34],['السجدة',415,'مكية',30],['الأحزاب',418,'مدنية',73],['سبأ',428,'مكية',54],['فاطر',434,'مكية',45],['يس',440,'مكية',83],['الصافات',446,'مكية',182],['ص',453,'مكية',88],['الزمر',458,'مكية',75],['غافر',467,'مكية',85],['فصلت',477,'مكية',54],['الشورى',483,'مكية',53],['الزخرف',489,'مكية',89],['الدخان',496,'مكية',59],['الجاثية',499,'مكية',37],['الأحقاف',502,'مكية',35],['محمد',507,'مدنية',38],['الفتح',511,'مدنية',29],['الحجرات',515,'مدنية',18],['ق',518,'مكية',45],['الذاريات',520,'مكية',60],['الطور',523,'مكية',49],['النجم',526,'مكية',62],['القمر',528,'مكية',55],['الرحمن',531,'مدنية',78],['الواقعة',534,'مكية',96],['الحديد',537,'مدنية',29],['المجادلة',542,'مدنية',22],['الحشر',545,'مدنية',24],['الممتحنة',549,'مدنية',13],['الصف',551,'مدنية',14],['الجمعة',553,'مدنية',11],['المنافقون',554,'مدنية',11],['التغابن',556,'مدنية',18],['الطلاق',558,'مدنية',12],['التحريم',560,'مدنية',12],['الملك',562,'مكية',30],['القلم',564,'مكية',52],['الحاقة',566,'مكية',52],['المعارج',568,'مكية',44],['نوح',570,'مكية',28],['الجن',572,'مكية',28],['المزمل',574,'مكية',20],['المدثر',575,'مكية',56],['القيامة',577,'مكية',40],['الإنسان',578,'مدنية',31],['المرسلات',580,'مكية',50],['النبأ',582,'مكية',40],['النازعات',583,'مكية',46],['عبس',585,'مكية',42],['التكوير',586,'مكية',29],['الانفطار',587,'مكية',19],['المطففين',587,'مكية',36],['الانشقاق',589,'مكية',25],['البروج',590,'مكية',22],['الطارق',591,'مكية',17],['الأعلى',591,'مكية',19],['الغاشية',592,'مكية',26],['الفجر',593,'مكية',30],['البلد',594,'مكية',20],['الشمس',595,'مكية',15],['الليل',595,'مكية',21],['الضحى',596,'مكية',11],['الشرح',596,'مكية',8],['التين',597,'مكية',8],['العلق',597,'مكية',19],['القدر',598,'مكية',5],['البينة',599,'مدنية',8],['الزلزلة',599,'مدنية',8],['العاديات',600,'مكية',11],['القارعة',600,'مدنية',11],['التكاثر',601,'مكية',8],['العصر',601,'مكية',3],['الهمزة',601,'مكية',9],['الفيل',601,'مكية',5],['قريش',602,'مكية',4],['الماعون',602,'مكية',7],['الكوثر',602,'مكية',3],['الكافرون',603,'مكية',6],['النصر',603,'مدنية',3],['المسد',603,'مكية',5],['الإخلاص',604,'مكية',4],['الفلق',604,'مكية',5],['الناس',604,'مكية',6],
 ].map(([name, page, type, ayahs], index) => ({ number: index + 1, name: name as string, page: page as number, type: type as string, ayahs: ayahs as number }));
 
-// تم تصحيح الدالة لتقوم بتحويل الأرقام الصرفة بدقة دون المساس بالحروف
 const toArabicNumber = (value: number | string) => String(value).replace(/\d/g, (digit) => ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'][Number(digit)]);
 const fromArabicNumber = (value: string) => value.replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
 const pageSurah = (page: number) => surahs.reduce((current, surah) => (surah.page <= page ? surah : current), surahs[0]);
@@ -342,8 +343,42 @@ export default function QuranReader() {
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
   const [isDark, setIsDark] = useState(() => readPreference(DARK_MODE_KEY));
   const [currentView, setCurrentView] = useState<'quran' | 'adhkar' | 'sleep'>('quran');
-  const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
-  const currentSurah = pageSurah(pageNumber);
+  
+  // States and references for Ambient Nature Sounds
+  const [activeSound, setActiveSound] = useState<'none' | 'rain' | 'water' | 'leaves'>('none');
+  const [isSoundMenuOpen, setIsSoundMenuOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const soundUrls = {
+    rain: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_220973a5a4.mp3?filename=gentle-rain-16195.mp3',
+    water: 'https://cdn.pixabay.com/download/audio/2022/05/16/audio_db32a4e223.mp3?filename=water-stream-flow-10761.mp3',
+    leaves: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a1b15e47.mp3?filename=forest-wind-and-birds-6902.mp3',
+  };
+
+  useEffect(() => {
+    if (activeSound === 'none') {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(soundUrls[activeSound]);
+      audio.loop = true;
+      audio.volume = 0.5;
+      audio.play().catch(() => {
+        // Handle autoplay policy restrictions smoothly if any
+      });
+      audioRef.current = audio;
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [activeSound]);
 
   useEffect(() => {
     try { localStorage.setItem(LAST_PAGE_KEY, String(pageNumber)); } catch { /* no-op */ }
@@ -383,6 +418,9 @@ export default function QuranReader() {
     else addBookmark(pageNumber);
   };
 
+  const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
+  const currentSurah = pageSurah(pageNumber);
+
   return <main className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))]" dir="rtl">
     <header className="sticky top-0 z-35 border-b border-[hsl(var(--border)/.72)] bg-[hsl(var(--background)/.9)] backdrop-blur-md">
       <div className="reader-header mx-auto flex max-w-xl flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5">
@@ -397,6 +435,50 @@ export default function QuranReader() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+          {/* زر أصوات الطبيعة الهادئة مع قائمة منسدلة */}
+          <div className="relative">
+            <IconButton
+              label="أصوات هادئة للاسترخاء"
+              testId="button-ambient-sound"
+              onClick={() => setIsSoundMenuOpen((prev) => !prev)}
+              active={activeSound !== 'none'}
+            >
+              {activeSound !== 'none' ? <Volume2 size={17} className="animate-pulse" /> : <VolumeX size={17} />}
+            </IconButton>
+
+            {isSoundMenuOpen && (
+              <div className="absolute left-0 mt-2 w-48 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 shadow-lg z-50 text-right">
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))] mb-1">
+                  اختر صوتاً هادئاً:
+                </div>
+                <button
+                  onClick={() => { setActiveSound('none'); setIsSoundMenuOpen(false); }}
+                  className={`w-full rounded-lg px-3 py-2 text-xs text-right transition-colors ${activeSound === 'none' ? 'bg-[hsl(var(--accent)/.2)] text-[hsl(var(--primary))] font-semibold' : 'hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]'}`}
+                >
+                  🔇 إيقاف الصوت
+                </button>
+                <button
+                  onClick={() => { setActiveSound('rain'); setIsSoundMenuOpen(false); }}
+                  className={`w-full rounded-lg px-3 py-2 text-xs text-right transition-colors ${activeSound === 'rain' ? 'bg-[hsl(var(--accent)/.2)] text-[hsl(var(--primary))] font-semibold' : 'hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]'}`}
+                >
+                  🌧️ صوت المطر الهادئ
+                </button>
+                <button
+                  onClick={() => { setActiveSound('water'); setIsSoundMenuOpen(false); }}
+                  className={`w-full rounded-lg px-3 py-2 text-xs text-right transition-colors ${activeSound === 'water' ? 'bg-[hsl(var(--accent)/.2)] text-[hsl(var(--primary))] font-semibold' : 'hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]'}`}
+                >
+                  💧 خرير الماء
+                </button>
+                <button
+                  onClick={() => { setActiveSound('leaves'); setIsSoundMenuOpen(false); }}
+                  className={`w-full rounded-lg px-3 py-2 text-xs text-right transition-colors ${activeSound === 'leaves' ? 'bg-[hsl(var(--accent)/.2)] text-[hsl(var(--primary))] font-semibold' : 'hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]'}`}
+                >
+                  🍃 خفيف الشجر
+                </button>
+              </div>
+            )}
+          </div>
+
           {currentView === 'quran' && (
             <button
               data-testid="toggle-tafsir-mode"
@@ -580,7 +662,7 @@ export default function QuranReader() {
               : 'border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]'
           }`}
         >
-          <Sparkles size={15} />
+          <Sparkles size= {15} />
           الأذكار
         </button>
 
