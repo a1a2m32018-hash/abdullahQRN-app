@@ -27,12 +27,11 @@ const surahs: Surah[] = [
   ['الفاتحة',1,'مكية',7],['البقرة',2,'مدنية',286],['آل عمران',50,'مدنية',200],['النساء',77,'مدنية',176],['المائدة',106,'مدنية',120],['الأنعام',128,'مكية',165],['الأعراف',151,'مكية',206],['الأنفال',177,'مدنية',75],['التوبة',187,'مدنية',129],['يونس',208,'مكية',109],['هود',221,'مكية',123],['يوسف',235,'مكية',111],['الرعد',249,'مدنية',43],['إبراهيم',255,'مكية',52],['الحجر',262,'مكية',99],['النحل',267,'مكية',128],['الإسراء',282,'مكية',111],['الكهف',293,'مكية',110],['مريم',305,'مكية',98],['طه',312,'مكية',135],['الأنبيائ',322,'مكية',112],['الحج',332,'مدنية',78],['المؤمنون',342,'مكية',118],['النور',350,'مدنية',64],['الفرقان',359,'مكية',77],['الشعراء',367,'مكية',227],['النمل',377,'مكية',93],['القصص',385,'مكية',88],['العنكبوت',396,'مكية',69],['الروم',404,'مكية',60],['لقمان',411,'مكية',34],['السجدة',415,'مكية',30],['الأحزاب',418,'مدنية',73],['سبأ',428,'مكية',54],['فاطر',434,'مكية',45],['يس',440,'مكية',83],['الصافات',446,'مكية',182],['ص',453,'مكية',88],['الزمر',458,'مكية',75],['غافر',467,'مكية',85],['فصلت',477,'مكية',54],['الشورى',483,'مكية',53],['الزخرف',489,'مكية',89],['الدخان',496,'مكية',59],['الجاثية',499,'مكية',37],['الأحقاف',502,'مكية',35],['محمد',507,'مدنية',38],['الفتح',511,'مدنية',29],['الحجرات',515,'مدنية',18],['ق',518,'مكية',45],['الذاريات',520,'مكية',60],['الطور',523,'مكية',49],['النجم',526,'مكية',62],['القمر',528,'مكية',55],['الرحمن',531,'مدنية',78],['الواقعة',534,'مكية',96],['الحديد',537,'مدنية',29],['المجادلة',542,'مدنية',22],['الحشر',545,'مدنية',24],['الممتحنة',549,'مدنية',13],['الصف',551,'مدنية',14],['الجمعة',553,'مدنية',11],['المنافقون',554,'مدنية',11],['التغابن',556,'مدنية',18],['الطلاق',558,'مدنية',12],['التحريم',560,'مدنية',12],['الملك',562,'مكية',30],['القلم',564,'مكية',52],['الحاقة',566,'مكية',52],['المعارج',568,'مكية',44],['نوح',570,'مكية',28],['الجن',572,'مكية',28],['المزمل',574,'مكية',20],['المدثر',575,'مكية',56],['القيامة',577,'مكية',40],['الإنسان',578,'مدنية',31],['المرسلات',580,'مكية',50],['النبأ',582,'مكية',40],['النازعات',583,'مكية',46],['عبس',585,'مكية',42],['التكوير',586,'مكية',29],['الانفطار',587,'مكية',19],['المطففين',587,'مكية',36],['الانشقاق',589,'مكية',25],['البروج',590,'مكية',22],['الطارق',591,'مكية',17],['الأعلى',591,'مكية',19],['الغاشية',592,'مكية',26],['الفجر',593,'مكية',30],['البلد',594,'مكية',20],['الشمس',595,'مكية',15],['الليل',595,'مكية',21],['الضحى',596,'مكية',11],['الشرح',596,'مكية',8],['التين',597,'مكية',8],['العلق',597,'مكية',19],['القدر',598,'مكية',5],['البينة',599,'مدنية',8],['الزلزلة',599,'مدنية',8],['العاديات',600,'مكية',11],['القارعة',600,'مدنية',11],['التكاثر',601,'مكية',8],['العصر',601,'مكية',3],['الهمزة',601,'مكية',9],['الفيل',601,'مكية',5],['قريش',602,'مكية',4],['الماعون',602,'مكية',7],['الكوثر',602,'مكية',3],['الكافرون',603,'مكية',6],['النصر',603,'مدنية',3],['المسد',603,'مكية',5],['الإخلاص',604,'مكية',4],['الفلق',604,'مكية',5],['الناس',604,'مكية',6],
 ].map(([name, page, type, ayahs], index) => ({ number: index + 1, name: name as string, page: page as number, type: type as string, ayahs: ayahs as number }));
 
-// تم تصحيح الدالة لتقوم بتحويل الأرقام الصرفة بدقة دون المساس بالحروف
 const toArabicNumber = (value: number | string) => String(value).replace(/\d/g, (digit) => ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'][Number(digit)]);
 const fromArabicNumber = (value: string) => value.replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
 const pageSurah = (page: number) => surahs.reduce((current, surah) => (surah.page <= page ? surah : current), surahs[0]);
 const TAFSIR_MODE_KEY = 'quran-reader-tafsir-mode-v1';
-const DARK_MODE_KEY = 'quran-reader-dark-mode-v1';
+const THEME_KEY = 'quran-reader-theme-v1';
 const DHIKR_KEY = 'quran-reader-dhikr-v1';
 
 type DhikrCounter = { id: string; label: string; phrase: string; count: number };
@@ -50,6 +49,14 @@ function readPreference(key: string) {
     return localStorage.getItem(key) === 'true';
   } catch {
     return false;
+  }
+}
+
+function readThemePreference() {
+  try {
+    return localStorage.getItem(THEME_KEY) || 'default';
+  } catch {
+    return 'default';
   }
 }
 
@@ -340,7 +347,11 @@ export default function QuranReader() {
   const [direction, setDirection] = useState(1);
   const [selectedAyah, setSelectedAyah] = useState<QuranAyah | null>(null);
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
-  const [isDark, setIsDark] = useState(() => readPreference(DARK_MODE_KEY));
+  
+  // ثيتنا القائمة المنسدلة للثيمات هنا
+  const [currentTheme, setCurrentTheme] = useState(readThemePreference);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+
   const [currentView, setCurrentView] = useState<'quran' | 'adhkar' | 'sleep'>('quran');
   const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
   const currentSurah = pageSurah(pageNumber);
@@ -350,10 +361,21 @@ export default function QuranReader() {
     setPageInput(String(pageNumber));
   }, [pageNumber]);
 
+  // تطبيق الثيمات المنسدلة وحفظها
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    try { localStorage.setItem(DARK_MODE_KEY, String(isDark)); } catch { /* no-op */ }
-  }, [isDark]);
+    document.body.classList.remove('theme-default', 'theme-burgundy', 'theme-gold', 'theme-sepia', 'theme-light');
+    document.body.classList.add(`theme-${currentTheme}`);
+    try { localStorage.setItem(THEME_KEY, currentTheme); } catch { /* no-op */ }
+  }, [currentTheme]);
+
+  // إغلاق قائمة الثيمات عند الضغط في أي مكان خارجها
+  useEffect(() => {
+    const handleOutsideClick = () => setIsThemeMenuOpen(false);
+    if (isThemeMenuOpen) {
+      window.addEventListener('click', handleOutsideClick);
+    }
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, [isThemeMenuOpen]);
 
   useEffect(() => {
     try { localStorage.setItem(TAFSIR_MODE_KEY, String(tafsirMode)); } catch { /* no-op */ }
@@ -412,14 +434,52 @@ export default function QuranReader() {
             </button>
           )}
 
-          <IconButton
-            label={isDark ? 'الوضع الفاتح' : 'الوضع الليلي'}
-            testId="button-toggle-dark-mode"
-            onClick={() => setIsDark((current) => !current)}
-            active={isDark}
-          >
-            {isDark ? <Sun size={17} /> : <Moon size={17} />}
-          </IconButton>
+          {/* زر الثيمات المنسدل الجديد كلياً */}
+          <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
+            <IconButton
+              label="الثيمات الهادئة"
+              testId="button-toggle-themes"
+              onClick={() => setIsThemeMenuOpen((prev) => !prev)}
+              active={currentTheme !== 'default'}
+            >
+              <Moon size={17} />
+            </IconButton>
+
+            {isThemeMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 z-50 min-w-[170px] flex flex-col rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-1 shadow-xl">
+                <button
+                  onClick={() => { setCurrentTheme('default'); setIsThemeMenuOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-right text-xs transition-colors hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]"
+                >
+                  🌙 الليلي الافتراضي
+                </button>
+                <button
+                  onClick={() => { setCurrentTheme('burgundy'); setIsThemeMenuOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-right text-xs transition-colors hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]"
+                >
+                  🍷 العنابي الفخم
+                </button>
+                <button
+                  onClick={() => { setCurrentTheme('gold'); setIsThemeMenuOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-right text-xs transition-colors hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]"
+                >
+                  ✨ الذهبي الدافئ
+                </button>
+                <button
+                  onClick={() => { setCurrentTheme('sepia'); setIsThemeMenuOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-right text-xs transition-colors hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]"
+                >
+                  📜 ورق البردي (هادئ)
+                </button>
+                <button
+                  onClick={() => { setCurrentTheme('light'); setIsThemeMenuOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-right text-xs transition-colors hover:bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]"
+                >
+                  ☀️ النهار المريح
+                </button>
+              </div>
+            )}
+          </div>
 
           <IconButton
             label="فهرس السور"
