@@ -348,7 +348,7 @@ export default function QuranReader() {
   const [selectedAyah, setSelectedAyah] = useState<QuranAyah | null>(null);
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
   
-  // ثيتنا القائمة المنسدلة للثيمات هنا
+  // ثبيت الثيمات هنا
   const [currentTheme, setCurrentTheme] = useState(readThemePreference);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
 
@@ -361,14 +361,14 @@ export default function QuranReader() {
     setPageInput(String(pageNumber));
   }, [pageNumber]);
 
-  // تطبيق الثيمات المنسدلة وحفظها
+  // تطبيق الثيمات وحفظها في الـ body وفي localStorage
   useEffect(() => {
     document.body.classList.remove('theme-default', 'theme-burgundy', 'theme-gold', 'theme-sepia', 'theme-light');
     document.body.classList.add(`theme-${currentTheme}`);
     try { localStorage.setItem(THEME_KEY, currentTheme); } catch { /* no-op */ }
   }, [currentTheme]);
 
-  // إغلاق قائمة الثيمات عند الضغط في أي مكان خارجها
+  // إغلاق قائمة الثيمات عند الضغط خارجها
   useEffect(() => {
     const handleOutsideClick = () => setIsThemeMenuOpen(false);
     if (isThemeMenuOpen) {
@@ -434,7 +434,7 @@ export default function QuranReader() {
             </button>
           )}
 
-          {/* زر الثيمات المنسدل الجديد كلياً */}
+          {/* قائمة الثيمات */}
           <div className="relative inline-block" onClick={(e) => e.stopPropagation()}>
             <IconButton
               label="الثيمات الهادئة"
