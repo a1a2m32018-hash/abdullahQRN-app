@@ -152,7 +152,7 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
   );
 }
 
-function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean }) {
+function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode, onNextPage }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean; onNextPage: () => void }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
   const isSurahStartPage = firstSurah && page.ayahs[0]?.numberInSurah === 1;
@@ -194,6 +194,18 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode 
             tafsirMode={tafsirMode} 
           />
         ))}
+      </div>
+
+      {/* سهم صغير في نهاية الصفحة للانتقال للصفحة التالية */}
+      <div className="mt-8 pt-4 border-t border-[hsl(var(--border)/.5)] flex items-center justify-center">
+        <button
+          onClick={onNextPage}
+          aria-label="الانتقال للصفحة التالية"
+          className="group flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors py-2 px-4 rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card)/.4)] hover:border-[hsl(var(--accent))]"
+        >
+          <span>الصفحة التالية</span>
+          <ChevronLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+        </button>
       </div>
     </div>
   );
@@ -313,23 +325,6 @@ function TafsirDialog({ ayah, onClose }: { ayah: QuranAyah; onClose: () => void 
   </motion.div>;
 }
 
-function PageArrow({ side, disabled, onClick }: { side: 'right' | 'left'; disabled: boolean; onClick: () => void }) {
-  const isRight = side === 'right';
-  return (
-    <button
-      data-testid={`button-fixed-${side}-page`}
-      aria-label={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
-      title={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
-      onClick={onClick}
-      disabled={disabled}
-      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.2)] bg-[hsl(var(--card)/.03)] text-[hsl(var(--primary))] shadow-[0_2px_8px_hsl(var(--foreground)/.02)] backdrop-blur-[0px] transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.12)] hover:border-[hsl(var(--accent)/.4)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-10 sm:h-12 sm:w-12`}
-    >
-      <span className="sr-only">{isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}</span>
-      {isRight ? <ChevronRight size={22} strokeWidth={2} /> : <ChevronLeft size={22} strokeWidth={2} />}
-    </button>
-  );
-}
-
 export default function QuranReader() {
   const { bookmarks, addBookmark, removeBookmark, isBookmarked } = useBookmarks();
   const [pageNumber, setPageNumber] = useState(getInitialReaderPage);
@@ -396,6 +391,28 @@ export default function QuranReader() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+          {/* أزرار التنقل (السهمين) في المكان المطلوب بجانب أزرار الهيدر */}
+          {currentView === 'quran' && (
+            <div className="flex items-center gap-1 ml-1 pl-2 border-l border-[hsl(var(--border))]">
+              <IconButton
+                label="الصفحة السابقة"
+                testId="button-fixed-right-page"
+                onClick={() => goTo(pageNumber - 1)}
+                active={false}
+              >
+                <ChevronRight size={18} />
+              </IconButton>
+              <IconButton
+                label="الصفحة التالية"
+                testId="button-fixed-left-page"
+                onClick={() => goTo(pageNumber + 1)}
+                active={false}
+              >
+                <ChevronLeft size={18} />
+              </IconButton>
+            </div>
+          )}
+
           {currentView === 'quran' && (
             <button
               data-testid="toggle-tafsir-mode"
@@ -407,7 +424,7 @@ export default function QuranReader() {
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${tafsirMode ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
-              <span>وضع التفسير: {tafsirMode ? 'مفعل' : 'معطل'}</span>
+              <span>التفسير: {tafsirMode ? 'مفعل' : 'معطل'}</span>
             </button>
           )}
 
@@ -448,21 +465,6 @@ export default function QuranReader() {
         <WifiOff size={13} />
         أنت غير متصل. ستظهر الصفحات المحفوظة على هذا الجهاز.
       </div>
-    )}
-
-    {currentView === 'quran' && (
-      <>
-        <PageArrow
-          side="right"
-          disabled={pageNumber === 1}
-          onClick={() => goTo(pageNumber - 1)}
-        />
-        <PageArrow
-          side="left"
-          disabled={pageNumber === 604}
-          onClick={() => goTo(pageNumber + 1)}
-        />
-      </>
     )}
 
     <section className="reader-section mx-auto max-w-xl px-2 pb-28 pt-4 sm:px-6 sm:pt-6">
@@ -530,6 +532,7 @@ export default function QuranReader() {
                     onBookmark={toggleBookmark}
                     onAyahSelect={setSelectedAyah}
                     tafsirMode={tafsirMode}
+                    onNextPage={() => goTo(pageNumber + 1)}
                   />
                 ) : (
                   <EmptyPage />
