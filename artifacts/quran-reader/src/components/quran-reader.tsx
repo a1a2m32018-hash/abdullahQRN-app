@@ -323,7 +323,7 @@ function PageArrow({ side, disabled, onClick }: { side: 'right' | 'left'; disabl
       title={isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}
       onClick={onClick}
       disabled={disabled}
-      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.6)] bg-[hsl(var(--card)/.92)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.12)] backdrop-blur-sm transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.18)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-20 sm:h-12 sm:w-12`}
+      className={`fixed ${isRight ? 'right-2 sm:right-6' : 'left-2 sm:left-6'} top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[hsl(var(--accent)/.4)] bg-[hsl(var(--card)/.35)] text-[hsl(var(--primary))] shadow-[0_4px_14px_hsl(var(--foreground)/.08)] backdrop-blur-[2px] transition-all hover:scale-105 hover:bg-[hsl(var(--accent)/.25)] hover:border-[hsl(var(--accent))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-10 sm:h-12 sm:w-12`}
     >
       <span className="sr-only">{isRight ? 'الصفحة السابقة' : 'الصفحة التالية'}</span>
       {isRight ? <ChevronRight size={22} strokeWidth={2} /> : <ChevronLeft size={22} strokeWidth={2} />}
