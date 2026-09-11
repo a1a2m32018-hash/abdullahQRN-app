@@ -152,7 +152,7 @@ function AyahText({ ayah, startsSurah, onSelect, tafsirMode }: { ayah: QuranAyah
   );
 }
 
-function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode, onNextPage }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean; onNextPage: () => void }) {
+function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode, onPrevPage, onNextPage }: { page: NonNullable<ReturnType<typeof useQuranPage>['page']>; isBookmarked: boolean; onBookmark: () => void; onAyahSelect: (ayah: QuranAyah) => void; tafsirMode: boolean; onPrevPage: () => void; onNextPage: () => void }) {
   const firstSurah = page.ayahs[0]?.surah;
   const surahBreaks = page.ayahs.reduce<number[]>((acc, ayah, index) => (index === 0 || ayah.surah.number !== page.ayahs[index - 1].surah.number ? [...acc, index] : acc), []);
   const isSurahStartPage = firstSurah && page.ayahs[0]?.numberInSurah === 1;
@@ -196,8 +196,17 @@ function PageContent({ page, isBookmarked, onBookmark, onAyahSelect, tafsirMode,
         ))}
       </div>
 
-      {/* سهم صغير في نهاية الصفحة للانتقال للصفحة التالية */}
-      <div className="mt-8 pt-4 border-t border-[hsl(var(--border)/.5)] flex items-center justify-center">
+      {/* سهمان في نهاية الصفحة للانتقال للصفحة السابقة أو التالية */}
+      <div className="mt-8 pt-4 border-t border-[hsl(var(--border)/.5)] flex items-center justify-center gap-3">
+        <button
+          onClick={onPrevPage}
+          aria-label="الانتقال للصفحة السابقة"
+          className="group flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors py-2 px-4 rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card)/.4)] hover:border-[hsl(var(--accent))]"
+        >
+          <ChevronRight size={16} className="transition-transform group-hover:translate-x-1" />
+          <span>الصفحة السابقة</span>
+        </button>
+
         <button
           onClick={onNextPage}
           aria-label="الانتقال للصفحة التالية"
@@ -532,6 +541,7 @@ export default function QuranReader() {
                     onBookmark={toggleBookmark}
                     onAyahSelect={setSelectedAyah}
                     tafsirMode={tafsirMode}
+                    onPrevPage={() => goTo(pageNumber - 1)}
                     onNextPage={() => goTo(pageNumber + 1)}
                   />
                 ) : (
