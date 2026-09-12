@@ -247,7 +247,32 @@ function DhikrPanel() {
 
   return <section className="adhkar-panel mx-auto mt-2 max-w-xl rounded-[1.35rem] border border-[hsl(var(--border))] p-4 sm:p-6" dir="rtl" data-testid="section-adhkar">
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[hsl(var(--border)/.75)] pb-4"><div><div className="mb-2 flex items-center gap-2 text-[hsl(var(--accent))]"><Sparkles size={15} /><span className="text-[10px] font-semibold tracking-[.18em]">مساحة الذكر</span></div><h2 className="font-serif text-2xl text-[hsl(var(--primary))]">أذكاري اليوم</h2><p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">عدادات تحفظ تقدمك تلقائياً على هذا الجهاز</p></div><div className="flex items-center gap-3"><span className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]"><CircleGauge size={13} className="text-[hsl(var(--accent))]" /> المجموع <strong className="font-serif text-lg text-[hsl(var(--primary))]">{toArabicNumber(total)}</strong></span><button data-testid="button-reset-dhikr" onClick={reset} className="flex items-center gap-1.5 rounded-full border border-[hsl(var(--border))] px-3 py-2 text-[10px] text-[hsl(var(--muted-foreground))] transition-colors hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]"><RotateCcw size={13} /> تصفير</button></div></div>
-    <div className="grid gap-3 sm:grid-cols-2">{counters.map((counter) => <button key={counter.id} data-testid={`button-dhikr-${counter.id}`} onClick={() => increment(counter.id)} className="dhikr-card group text-right"><span className="flex items-center justify-between gap-3"><span><span className="block text-[10px] text-[hsl(var(--muted-foreground))]">{counter.label}</span><span className="mt-1 block font-serif text-lg text-[hsl(var(--foreground))]">{counter.phrase}</span></span><span className="dhikr-count"><span className="font-serif text-xl">{toArabicNumber(counter.count)}</span><Plus size={14} /></span></span><span className="mt-4 flex items-center justify-between text-[9px] text-[hsl(var(--muted-foreground))]"><span>اضغط للزيادة</span><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] transition-transform group-hover:scale-150" /></span></button>)}</div>
+    
+    {/* تم تعديل أزرار الأذكار لتكون بزر دائري لعلامة الزائد ورقم بجانبه على طول */}
+    <div className="grid gap-3 sm:grid-cols-2">
+      {counters.map((counter) => (
+        <button 
+          key={counter.id} 
+          data-testid={`button-dhikr-${counter.id}`} 
+          onClick={() => increment(counter.id)} 
+          className="dhikr-card group flex items-center justify-between gap-3 p-4 rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card)/.6)] text-right transition-all hover:border-[hsl(var(--accent))]"
+        >
+          <div className="min-w-0 flex-1">
+            <span className="block text-[10px] text-[hsl(var(--muted-foreground))]">{counter.label}</span>
+            <span className="mt-1 block font-serif text-lg text-[hsl(var(--foreground))]">{counter.phrase}</span>
+          </div>
+          
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="font-serif text-xl font-bold text-[hsl(var(--primary))] min-w-[2rem] text-center">
+              {toArabicNumber(counter.count)}
+            </span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--accent)/.15)] text-[hsl(var(--primary))] transition-transform group-hover:scale-110">
+              <Plus size={18} />
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
   </section>;
 }
 
@@ -519,8 +544,9 @@ export default function QuranReader() {
             </div>
           )}
 
-          <div className="mushaf-frame mx-auto min-h-[620px] overflow-hidden rounded-[1.25rem] border border-[hsl(var(--border))] bg-[hsl(var(--card)/.5)] p-2 shadow-sm sm:p-4">
-            <div className="ornament-line mx-8 mt-3 sm:mx-14 sm:mt-5" />
+          {/* تم إصلاح فراغ الشاشة والآيات المتداخلة في الأعلى بضبط هيكلة الحاوية الداخلية */}
+          <div className="mushaf-frame mx-auto min-h-[620px] overflow-hidden rounded-[1.25rem] border border-[hsl(var(--border))] bg-[hsl(var(--card)/.5)] p-2 shadow-sm sm:p-4 pt-1">
+            <div className="ornament-line mx-8 mt-2 sm:mx-14 sm:mt-3" />
 
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -550,7 +576,7 @@ export default function QuranReader() {
               </motion.div>
             </AnimatePresence>
 
-            <div className="ornament-line mx-8 mb-3 sm:mx-14 sm:mb-5" />
+            <div className="ornament-line mx-8 mb-2 sm:mx-14 sm:mb-3" />
           </div>
 
           {isOffline && (
