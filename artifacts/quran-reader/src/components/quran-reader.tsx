@@ -248,7 +248,6 @@ function DhikrPanel() {
   return <section className="adhkar-panel mx-auto mt-2 max-w-xl rounded-[1.35rem] border border-[hsl(var(--border))] p-4 sm:p-6" dir="rtl" data-testid="section-adhkar">
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[hsl(var(--border)/.75)] pb-4"><div><div className="mb-2 flex items-center gap-2 text-[hsl(var(--accent))]"><Sparkles size={15} /><span className="text-[10px] font-semibold tracking-[.18em]">مساحة الذكر</span></div><h2 className="font-serif text-2xl text-[hsl(var(--primary))]">أذكاري اليوم</h2><p className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">عدادات تحفظ تقدمك تلقائياً على هذا الجهاز</p></div><div className="flex items-center gap-3"><span className="flex items-center gap-1.5 text-[10px] text-[hsl(var(--muted-foreground))]"><CircleGauge size={13} className="text-[hsl(var(--accent))]" /> المجموع <strong className="font-serif text-lg text-[hsl(var(--primary))]">{toArabicNumber(total)}</strong></span><button data-testid="button-reset-dhikr" onClick={reset} className="flex items-center gap-1.5 rounded-full border border-[hsl(var(--border))] px-3 py-2 text-[10px] text-[hsl(var(--muted-foreground))] transition-colors hover:border-[hsl(var(--accent))] hover:text-[hsl(var(--primary))]"><RotateCcw size={13} /> تصفير</button></div></div>
     
-    {/* تم تعديل أزرار الأذكار لتكون بزر دائري لعلامة الزائد ورقم بجانبه على طول */}
     <div className="grid gap-3 sm:grid-cols-2">
       {counters.map((counter) => (
         <button 
@@ -370,6 +369,7 @@ export default function QuranReader() {
   const [tafsirMode, setTafsirMode] = useState(() => readPreference(TAFSIR_MODE_KEY));
   const [isDark, setIsDark] = useState(() => readPreference(DARK_MODE_KEY));
   const [currentView, setCurrentView] = useState<'quran' | 'adhkar' | 'sleep'>('quran');
+  const [isDragging, setIsDragging] = useState(false); // الحالة الجديدة لتتبع لمس وسحب الشاشة
   const { page, isLoading, error, isOffline, retry } = useQuranPage(pageNumber);
   const currentSurah = pageSurah(pageNumber);
 
@@ -411,8 +411,15 @@ export default function QuranReader() {
     else addBookmark(pageNumber);
   };
 
-  return <main className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))]" dir="rtl">
-    <header className="sticky top-0 z-35 border-b border-[hsl(var(--border)/.72)] bg-[hsl(var(--background)/.9)] backdrop-blur-md">
+  return (
+    <main 
+      className="paper-grain min-h-[100dvh] bg-[hsl(var(--background))]" 
+      dir="rtl"
+      onPointerDown={() => setIsDragging(true)}
+      onPointerUp={() => setIsDragging(false)}
+      onPointerLeave={() => setIsDragging(false)}
+    >
+      <header className={`sticky top-0 z-35 border-b border-[hsl(var(--border)/.72)] bg-[hsl(var(--background)/.9)] backdrop-blur-md transition-opacity duration-300 ${isDragging ? 'opacity-20' : 'opacity-100'}`}>
       <div className="reader-header mx-auto flex max-w-xl flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3.5">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--accent)/.72)] text-[hsl(var(--accent))]">
@@ -425,7 +432,6 @@ export default function QuranReader() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
-          {/* أزرار التنقل (السهمين) في المكان المطلوب بجانب أزرار الهيدر */}
           {currentView === 'quran' && (
             <div className="flex items-center gap-1 ml-1 pl-2 border-l border-[hsl(var(--border))]">
               <IconButton
@@ -544,7 +550,6 @@ export default function QuranReader() {
             </div>
           )}
 
-          {/* تم إصلاح فراغ الشاشة والآيات المتداخلة في الأعلى بضبط هيكلة الحاوية الداخلية */}
           <div className="mushaf-frame mx-auto min-h-[620px] overflow-hidden rounded-[1.25rem] border border-[hsl(var(--border))] bg-[hsl(var(--card)/.5)] p-2 shadow-sm sm:p-4 pt-1">
             <div className="ornament-line mx-8 mt-2 sm:mx-14 sm:mt-3" />
 
