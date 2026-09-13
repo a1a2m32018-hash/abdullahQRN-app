@@ -677,13 +677,14 @@ export default function QuranReader() {
       />
     )}
 
-    <AnimatePresence>
-      {selectedAyah && (
-        <TafsirDialog
-          ayah={selectedAyah}
-          onClose={() => setSelectedAyah(null)}
-        />
-      )}
-    </AnimatePresence>
-  </main>;
+  <AnimatePresence>
+  {selectedAyah && (
+    <TafsirDialog
+      ayah={selectedAyah}
+      onClose={() => setSelectedAyah(null)}
+    />
+  )}
+</AnimatePresence>
+</main>
+  
 }
